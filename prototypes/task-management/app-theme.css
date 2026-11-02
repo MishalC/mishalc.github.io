@@ -1,0 +1,58 @@
+/**
+ * app-theme.css
+ * Dark theme tokens for the task management prototype.
+ * Works with both Tailwind CDN pages (via rgb(var(--app-*))) and plain CSS pages.
+ */
+
+:root {
+  /* Base tokens (raw RGB triplets, no rgb() wrapper) */
+  --app-bg: 24 24 27;
+  --app-card: 38 38 42;
+  --app-surface: 32 32 36;
+  --app-surface-raised: 40 40 45;
+  --app-border: 50 50 56;
+  --app-border-hover: 70 70 78;
+  --app-text-primary: 240 238 235;
+  --app-text-secondary: 180 175 168;
+  --app-text-tertiary: 140 135 128;
+  --app-accent: 99 102 241;
+  --app-accent-hover: 129 140 248;
+  --app-accent-light: 30 32 60;
+  --app-on-accent: 255 255 255;
+  --app-success: 60 180 100;
+  --app-success-light: 25 45 35;
+  --app-danger: 230 90 70;
+  --app-danger-light: 50 30 25;
+  --app-warning: 210 160 60;
+  --app-warning-light: 50 40 25;
+  --app-amber: 251 191 36;
+  --app-amber-soft: 50 38 18;
+  --app-info: 80 160 220;
+  --app-info-light: 25 35 45;
+  --app-chip-green: 60 180 100;
+  --app-chip-green-soft: 25 45 35;
+  --app-chip-peach: 255 140 80;
+  --app-chip-peach-soft: 50 35 25;
+  --app-chip-blue: 80 160 220;
+  --app-chip-blue-soft: 25 35 45;
+  --app-chip-teal: 70 190 180;
+  --app-chip-teal-soft: 25 45 45;
+  --app-chip-purple: 160 120 230;
+  --app-chip-purple-soft: 40 35 55;
+  --app-chip-pink: 240 120 180;
+  --app-chip-pink-soft: 50 30 45;
+  --app-control-knob: 255 255 255;
+  --app-overlay: 0 0 0;
+}
+
+/* Scrollbar styling (suite-wide) */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgb(var(--app-bg)); }
+::-webkit-scrollbar-thumb { background: rgb(var(--app-border)); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--app-border-hover)); }
+
+/* Selection highlight */
+::selection {
+  background: rgb(var(--app-accent));
+  color: rgb(var(--app-on-accent));
+}

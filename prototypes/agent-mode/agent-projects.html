@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent · Projects — Agent mode</title>
+  <link rel="stylesheet" href="../_shared/fonts.css">
+  <link rel="stylesheet" href="tailwind.css">
+  <link rel="stylesheet" href="agent.css">
+
+  <script src="theme.js"></script>
+  <script src="data.js"></script>
+  <script>window.CURRENT_PAGE = 'agent-projects'; window.CURRENT_APP_TAB = 'agent';</script>
+  <script src="nav.js"></script>
+  <script src="agent.js"></script>
+  <script src="topnav.js"></script>
+</head>
+
+<body class="bg-slate-950 text-slate-300 font-sans min-h-screen antialiased">
+  <a href="/prototypes/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:8px 12px;border-radius:999px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px/1.3 'Hanken Grotesk',system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #0006">Prototype by Mishal Chowdhury · names and data replaced · back to portfolio</a>
+
+  <div id="nav-root"></div>
+
+  <main class="ml-0 lg:ml-[260px] min-h-screen">
+    <div class="max-w-[1280px] mx-auto px-6 py-8 pt-14 lg:pt-8">
+
+      <!-- Title -->
+      <div class="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-semibold text-slate-100 tracking-tight">Agent · Projects</h2>
+          <p class="text-sm text-slate-500 mt-1">The operations app’s <span class="font-mono text-xs">/agent</span> route — projects grouped by trip and client. <span class="font-mono text-[11px] text-indigo-500">E1</span></p>
+        </div>
+        <button onclick="Agent.openCmdk()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400 hover:border-indigo-500 hover:text-slate-200 transition-colors">
+          <span class="kbd">⌘K</span> command palette
+        </button>
+      </div>
+
+      <!-- /agent route: Project list + Project detail -->
+      <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex" style="min-height:560px;">
+
+        <!-- Project list -->
+        <div class="w-[310px] border-r border-slate-800 flex flex-col flex-shrink-0">
+          <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+            <span class="text-sm font-semibold text-slate-200">Projects</span>
+            <span class="font-mono text-[10px] text-slate-500">E1-S1</span>
+          </div>
+          <div class="px-3 py-2.5 border-b border-slate-800/70">
+            <input type="text" placeholder="Search projects…" disabled
+                   class="w-full bg-slate-950 border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-slate-400 placeholder-slate-600 outline-none">
+          </div>
+          <div id="project-list" class="flex-1 overflow-y-auto py-2"></div>
+        </div>
+
+        <!-- Project detail -->
+        <div id="project-detail" class="flex-1 overflow-y-auto"></div>
+
+      </div>
+
+      <p class="text-xs text-slate-600 mt-3">threads are persisted server-side and anchored to a trip or client (<span class="font-mono text-indigo-500/80">E1-S4</span>). The Family A — Tokyo project is the fully worked example.</p>
+
+    </div>
+  </main>
+
+  <script>
+    let selectedProject = 'p-family-a';
+
+    function kindBadge(kind) {
+      return kind === 'trip'
+        ? '<span class="badge" style="color:#5eead4;background:#14b8a620;">Trip</span>'
+        : '<span class="badge" style="color:#fcd34d;background:#f59e0b20;">Client</span>';
+    }
+
+    function renderProject list() {
+      const groups = [
+        { label: 'Trips',   kind: 'trip' },
+        { label: 'Clients', kind: 'client' },
+      ];
+      document.getElementById('project-list').innerHTML = groups.map(g => {
+        const rows = MOCK.projects.filter(p => p.kind === g.kind);
+        return `
+          <div class="px-4 pt-2 pb-1 text-[10px] font-mono uppercase tracking-wider text-slate-600">${g.label}</div>
+          ${rows.map(p => `
+            <button onclick="selectProject('${p.id}')" data-pid="${p.id}"
+              class="project-row w-full text-left px-4 py-2.5 border-l-2 transition-colors ${p.id === selectedProject
+                ? 'border-indigo-500 bg-slate-800/50'
+                : 'border-transparent hover:bg-slate-800/30'}">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-sm text-slate-200 truncate">${Theme.escapeHtml(p.name)}</span>
+                ${p.openTasks > 0 ? `<span class="text-[10px] font-mono text-indigo-400 flex-shrink-0">${p.openTasks} open</span>` : ''}
+              </div>
+              <div class="text-[11px] text-slate-500 truncate mt-0.5">${p.threads} threads · "${Theme.escapeHtml(p.last)}"</div>
+            </button>
+          `).join('')}
+        `;
+      }).join('');
+    }
+
+    function detailSection(title, storyId, body) {
+      return `
+        <div class="border border-slate-800 rounded-lg">
+          <div class="flex items-center justify-between px-4 py-2.5 border-b border-slate-800">
+            <span class="text-sm font-semibold text-slate-200">${title}</span>
+            <span class="font-mono text-[10px] text-slate-500">${storyId}</span>
+          </div>
+          <div class="p-4">${body}</div>
+        </div>`;
+    }
+
+    function renderDetail(pid) {
+      const p = MOCK.projects.find(x => x.id === pid);
+      const detail = document.getElementById('project-detail');
+      const header = `
+        <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-semibold text-slate-100">${Theme.escapeHtml(p.name)}</h3>
+              ${kindBadge(p.kind)}
+            </div>
+            <div class="text-[11px] font-mono text-slate-500 mt-1">anchor: ${p.kind} · ${p.id}</div>
+          </div>
+        </div>`;
+
+      if (pid !== 'p-family-a') {
+        detail.innerHTML = header + `
+          <div class="p-6 space-y-4">
+            <div class="grid grid-cols-3 gap-3">
+              <div class="ctx-card text-center"><div class="font-mono text-xl text-slate-100">${p.threads}</div><div class="text-[10px] text-slate-500 uppercase tracking-wider mt-1">Threads</div></div>
+              <div class="ctx-card text-center"><div class="font-mono text-xl text-slate-100">${p.openTasks}</div><div class="text-[10px] text-slate-500 uppercase tracking-wider mt-1">Open tasks</div></div>
+              <div class="ctx-card text-center"><div class="font-mono text-xl text-slate-100">${p.memory}</div><div class="text-[10px] text-slate-500 uppercase tracking-wider mt-1">Memory facts</div></div>
+            </div>
+            <div class="text-xs text-slate-500 leading-relaxed border border-dashed border-slate-800 rounded-lg p-4">
+              Project detail surfaces Threads, the Memory Panel and Tasks for every project.
+              <span class="text-slate-300">Family A — Tokyo</span> is the fully worked example in this mockup — select it on the left.
+            </div>
+          </div>`;
+        return;
+      }
+
+      // Family A project -- fully worked
+      const threads = MOCK.threads.map(t => {
+        const dot = t.status === 'open' ? '#34d399' : t.status === 'paused' ? '#fbbf24' : '#64748b';
+        const isActive = t.status === 'open';
+        return `
+          <a href="agent-thread.html" class="flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-slate-800/60 transition-colors group">
+            <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${dot}"></span>
+            <span class="text-sm ${isActive ? 'text-slate-200' : 'text-slate-400'} flex-1 truncate group-hover:text-slate-100">${Theme.escapeHtml(t.title)}</span>
+            <span class="badge badge-assist">${t.skill}</span>
+            <span class="text-[11px] text-slate-600 capitalize w-14 text-right">${t.status}</span>
+          </a>`;
+      }).join('');
+
+      const facts = MOCK.clientFacts.slice(0, 2).map(f =>
+        `<li class="text-xs text-slate-400 leading-relaxed">• ${Theme.escapeHtml(f.body)}</li>`).join('');
+
+      const tasks = MOCK.tasks.map(t => `
+        <div class="task-card ${t.kind} flex items-center gap-3">
+          <span class="badge badge-${t.kind}">${t.kind} task</span>
+          <span class="text-xs text-slate-300 flex-1">${Theme.escapeHtml(t.title)}</span>
+          <span class="badge badge-${t.tier}">${t.tier}</span>
+        </div>`).join('');
+
+      detail.innerHTML = header + `
+        <div class="p-6 space-y-4">
+          ${detailSection('Threads', 'E1-S2 · E1-S3', `
+            <div class="space-y-1">${threads}</div>
+            <a href="agent-thread?step=1" class="inline-flex items-center gap-1.5 mt-3 text-xs text-indigo-400 hover:text-indigo-300">
+              + New hotel-search thread → walk the hero flow</a>
+          `)}
+          ${detailSection('Memory Panel', 'E1-S2 · E5', `
+            <ul class="space-y-1.5 mb-3">${facts}</ul>
+            <span class="text-xs text-indigo-400 hover:text-indigo-300">View all ${MOCK.clientFacts.length} client facts →</span>
+          `)}
+          ${detailSection('Tasks', 'E1-S2 · E4', `
+            <div class="space-y-2 mb-3">${tasks}</div>
+            <span class="text-xs text-indigo-400 hover:text-indigo-300">See how Agent Mode creates these in the task layer →</span>
+          `)}
+        </div>`;
+    }
+
+    function selectProject(pid) {
+      selectedProject = pid;
+      renderProject list();
+      renderDetail(pid);
+    }
+
+    renderProject list();
+    renderDetail(selectedProject);
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V2-B: Countdown to Breach (Intercom-style)</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../_shared/fonts.css">
+<link rel="stylesheet" href="tailwind.css">
+  <style>
+    * { font-family: 'Hanken Grotesk', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .transition-bg { transition: background-color 300ms ease-in-out; }
+  </style>
+</head>
+<body class="antialiased">
+<a href="/prototypes/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:8px 12px;border-radius:999px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px/1.3 'Hanken Grotesk',system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #0006">Prototype by Mishal Chowdhury · names and data replaced · back to portfolio</a>
+
+<!-- ======== TOP BANNER ======== -->
+<div class="bg-purple-600 text-white px-6 py-2 flex items-center justify-between" style="height:32px">
+  <div class="flex items-center gap-4 text-xs">
+    <span class="font-medium">Option B: Countdown Timer — shows time remaining until SLA breach</span>
+    <a href="s1-v2a-elapsed.html" class="underline hover:text-purple-100">Switch to Option A: Elapsed</a>
+    <a href="s1-thread-list.html" class="underline hover:text-purple-100">Back to Index</a>
+  </div>
+</div>
+
+<div class="flex flex-col h-screen bg-gray-50 overflow-hidden">
+
+  <!-- ======== TOP HEADER (64px) ======== -->
+  <header class="bg-white border-b border-gray-200 px-6 flex items-center transition-colors duration-200 shrink-0" style="height:64px">
+    <!-- Left: Logo -->
+    <div class="flex items-center">
+      <a href="s1-thread-list.html" class="flex items-center" title="Back to prototype index">
+        <span class="text-base font-semibold tracking-tight">Travel ops</span>
+      </a>
+    </div>
+    <!-- Right: Status + Icon buttons + Avatar -->
+    <div class="ml-auto flex items-center space-x-3">
+      <!-- WhatsApp Unreachable pill -->
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full cursor-default bg-red-50 border border-red-200" title="WhatsApp server is unreachable">
+        <span class="relative flex h-2.5 w-2.5">
+          <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+        </span>
+        <span class="text-xs font-semibold text-red-700">WhatsApp Unreachable</span>
+      </div>
+      <!-- Hide conversations (panel-left) -->
+      <button class="w-8 h-8 rounded flex border items-center justify-center transition-all duration-200 border-gray-300 bg-white text-gray-600 hover:bg-gray-50" title="Hide conversations">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path></svg>
+      </button>
+      <!-- Dark mode (moon) -->
+      <button class="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all duration-200" title="Switch to dark mode">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg>
+      </button>
+      <!-- Calendar -->
+      <button class="w-8 h-8 rounded border flex items-center justify-center transition-all duration-200 border-gray-300 bg-white text-gray-600 hover:bg-gray-50" title="Send weekly hotel alerts digest to Slack">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>
+      </button>
+      <!-- Settings (gear) -->
+      <button class="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all duration-200" title="Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+      </button>
+      <!-- Scheduled Messages (clock) -->
+      <button class="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all duration-200" title="Scheduled Messages">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+      </button>
+      <!-- Team (users) -->
+      <button class="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all duration-200" title="Manage Internal Users">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      </button>
+      <!-- User avatar -->
+      <button class="w-8 h-8 rounded-full bg-[#1F2937] flex items-center justify-center text-white text-xs font-medium">MC</button>
+    </div>
+  </header>
+
+  <!-- ======== SUB-HEADER ROW (64px) ======== -->
+  <div class="flex w-full border-b border-gray-200" style="height:64px">
+
+    <!-- Left sub-header: Search + Channel filter -->
+    <div class="flex-shrink-0 border-r border-gray-200" style="width:280px; height:64px">
+      <div class="bg-white h-full flex items-center px-3 gap-2">
+        <!-- Search input -->
+        <div class="relative flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 bg-white rounded-lg border border-gray-200 px-2.5 h-10 focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-transparent">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 flex-shrink-0"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+            <input type="text" placeholder="Search conversations..." class="flex-1 bg-transparent border-none outline-none text-sm text-gray-700 placeholder-gray-400 min-w-0" />
+            <div class="w-px h-5 bg-gray-300 flex-shrink-0"></div>
+            <button class="p-1 rounded transition-colors flex-shrink-0 text-gray-400 hover:text-gray-600" title="Deep Search OFF - searches thread titles only">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"></path><path d="M17 3h2a2 2 0 0 1 2 2v2"></path><path d="M21 17v2a2 2 0 0 1-2 2h-2"></path><path d="M7 21H5a2 2 0 0 1-2-2v-2"></path><circle cx="12" cy="12" r="3"></circle><path d="m16 16-1.9-1.9"></path></svg>
+            </button>
+          </div>
+        </div>
+        <!-- Channel filter: All / WhatsApp / Travel ops -->
+        <div class="flex items-center bg-gray-100 rounded-lg p-0.5 flex-shrink-0">
+          <button class="px-2 py-1.5 rounded-md text-xs font-medium transition-colors bg-white text-blue-600 shadow-sm" title="All Conversations">All</button>
+          <button class="px-2 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-500 hover:text-gray-700" title="WhatsApp Conversations">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-green-500"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" fill="currentColor"/><path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.955 9.955 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2z" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+          </button>
+          <button class="px-2 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-500 hover:text-gray-700" title="Mobile App Conversations">
+            <div class="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center">
+              <span class="text-[8px] font-bold text-amber-600">M</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center sub-header: Traveler ID + Assigned + Status + Actions -->
+    <div class="flex-1 min-w-0 border-r border-gray-200" style="min-width:400px; height:64px">
+      <div id="threadHeader" class="bg-white px-6 h-full flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <!-- Traveler ID button -->
+          <div class="inline-flex items-center gap-2 min-h-[48px] py-2 border border-gray-200 rounded-lg pl-3 pr-4 bg-white text-gray-700 hover:bg-gray-50 transition-all duration-200 select-none text-sm font-medium tracking-tight cursor-pointer">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+            <span id="headerTravelerId" class="min-w-0 break-words line-clamp-2">Travel ops | Member A partner &amp; Member A</span>
+          </div>
+          <!-- SLA badge in header -->
+          <div id="headerSlaBadge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200">
+            <span id="headerSlaDot" class="w-2 h-2 rounded-full bg-red-500"></span>
+            <span id="headerSlaText" class="text-[10px] font-semibold text-red-600">BREACHED 15:12 ago</span>
+          </div>
+          <!-- Status dropdown REMOVED — "New/In Progress/Done" tabs and status dropdown are being deprecated from CC messaging view -->
+        </div>
+        <div class="flex items-center space-x-2">
+          <!-- Clear Timer button (SLA feature) — PHASE 2 -->
+          <div class="flex items-center gap-1.5">
+            <button id="clearTimerBtn" onclick="openClearModal()"
+              class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 transition-colors duration-200 opacity-50 pointer-events-none">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9"/>
+                <path stroke-linecap="round" d="M12 7v5l3 3"/>
+                <path stroke-linecap="round" d="M8 8l8 8" stroke-width="2.5"/>
+              </svg>
+              Clear Timer
+            </button>
+            <span class="text-[9px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full border border-amber-200 whitespace-nowrap">Phase 2</span>
+          </div>
+          <!-- Search messages -->
+          <button class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Search messages (Ctrl+Shift+F)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          </button>
+          <!-- Lightning (AI) -->
+          <button class="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="AI Actions">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right sub-header: Trip selector -->
+    <div class="flex-shrink-0" style="width:300px; min-width:300px; max-width:300px; height:64px">
+      <div class="bg-white border-b border-gray-200 h-full flex items-center px-4 gap-2">
+        <div class="relative w-64">
+          <button class="w-full flex items-center justify-between px-4 py-3 bg-white border border-gray-200 hover:border-gray-300 rounded-lg text-sm text-left transition-colors">
+            <div class="flex items-center gap-2 min-w-0">
+              <div class="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              </div>
+              <span class="font-medium text-sm truncate w-full">General Travel Planning</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform flex-shrink-0"><path d="m6 9 6 6 6-6"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======== THREE-PANEL BODY ======== -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- ======== LEFT PANEL: Thread List (280px) ======== -->
+    <div class="flex-shrink-0 border-r border-gray-200 flex flex-col bg-white overflow-hidden" style="width:280px">
+
+      <!-- Tabs: All Threads | My Threads -->
+      <div class="bg-white border-b border-gray-100">
+        <div class="flex px-4 overflow-x-auto">
+          <button id="tabAll" onclick="switchTab('all')"
+            class="px-0 py-3 mr-5 text-sm font-medium flex items-center cursor-pointer whitespace-nowrap transition-colors duration-200 text-blue-600 border-b-2 border-blue-600">
+            All Threads
+            <span id="badgeAll" class="text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-none ml-1.5 bg-red-500 text-white">5</span>
+          </button>
+          <button id="tabMy" onclick="switchTab('my')"
+            class="px-0 py-3 mr-4 text-sm font-medium flex items-center cursor-pointer whitespace-nowrap transition-colors duration-200 text-gray-500 hover:text-gray-700">
+            My Threads
+            <span id="badgeMy" class="text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-none ml-1.5 bg-red-500 text-white">3</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Scheduled Messages shortcut row -->
+      <button class="flex items-center gap-2.5 px-4 py-2 border-b transition-colors duration-200 group shrink-0 w-full text-left bg-red-50 border-red-100 hover:bg-red-100">
+        <svg class="w-3.5 h-3.5 shrink-0 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path stroke-linecap="round" d="M12 7v5l3 3"></path></svg>
+        <span class="flex-1 text-xs font-medium text-red-700">Scheduled Messages</span>
+        <div class="flex items-center gap-1.5">
+          <span class="text-[10px] font-semibold bg-red-500 text-white rounded-full px-1.5 py-0.5 leading-none">1 failed</span>
+          <span class="text-[10px] font-semibold bg-blue-500 text-white rounded-full px-1.5 py-0.5 leading-none">2</span>
+        </div>
+        <svg class="w-3 h-3 group-hover:translate-x-0.5 transition-transform duration-150 shrink-0 text-red-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path></svg>
+      </button>
+
+      <!-- Thread list (scrollable) -->
+      <div id="threadList" class="flex-1 overflow-y-auto">
+
+        <!-- TIER 1: BREACHED (red) -->
+        <div id="sectionBreached" class="text-[10px] font-bold uppercase tracking-widest text-red-400 px-4 py-2 bg-red-50/50 border-b border-red-100/50">
+          BREACHED <span id="breachedCount">2</span>
+        </div>
+
+        <!-- Card 1: Red (BREACHED) -- Member A household -->
+        <div id="card-1" class="thread-card py-3 px-4 cursor-pointer transition-bg duration-200 border-b border-gray-100 bg-red-50 border-l-2 border-l-red-400"
+             data-status="breached" data-assignee="me" data-elapsed="2712" data-name="Member A partner &amp; Member A" data-trip="Bali Honeymoon"
+             onclick="selectCard('card-1')">
+          <div class="flex items-center">
+            <div class="relative">
+              <div class="w-12 h-12 rounded-full bg-rose-100 flex items-center justify-center text-white font-semibold text-base overflow-hidden">
+                <span class="text-rose-700 font-semibold">MA</span>
+              </div>
+            </div>
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="flex justify-between items-start min-w-0 gap-2">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <h3 class="font-medium text-sm min-w-0 break-words">Travel ops | Member A partner</h3>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 flex-shrink-0">Main</span>
+                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">1:15 PM</span>
+              </div>
+              <div class="flex items-center mt-1 min-w-0">
+                <p class="text-sm text-gray-600 truncate flex-1 min-w-0">Can we upgrade to a villa with a private pool?</p>
+              </div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>
+                <span class="text-[10px] font-medium text-red-600 timer-display">BREACHED 15:12 ago</span>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100/60 text-red-600 ml-auto">Bali Honeymoon</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Red (BREACHED) -- Member B -->
+        <div id="card-2" class="thread-card py-3 px-4 cursor-pointer transition-bg duration-200 border-b border-gray-100 bg-red-50"
+             data-status="breached" data-assignee="other" data-elapsed="2021" data-name="Member B" data-trip="Tokyo Spring Trip"
+             onclick="selectCard('card-2')">
+          <div class="flex items-center">
+            <div class="relative">
+              <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-white font-semibold text-base overflow-hidden">
+                <span class="text-blue-700 font-semibold">MB</span>
+              </div>
+            </div>
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="flex justify-between items-start min-w-0 gap-2">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <h3 class="font-medium text-sm min-w-0 break-words">Travel ops | Member B</h3>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 flex-shrink-0">Main</span>
+                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">12:48 PM</span>
+              </div>
+              <div class="flex items-center mt-1 min-w-0">
+                <p class="text-sm text-gray-600 truncate flex-1 min-w-0">Is the ryokan near Shinjuku station?</p>
+              </div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>
+                <span class="text-[10px] font-medium text-red-600 timer-display">BREACHED 3:41 ago</span>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100/60 text-red-600 ml-auto">Tokyo Spring</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIER 2: APPROACHING (orange, <5 min left) -->
+        <div id="sectionApproaching" class="hidden text-[10px] font-bold uppercase tracking-widest text-amber-400 px-4 py-2 bg-amber-50/50 border-b border-amber-100/50">
+          APPROACHING <span id="approachingCount">0</span>
+        </div>
+
+        <!-- TIER 3: ON TRACK (grey + green) -->
+        <div id="sectionOnTrack" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 px-4 py-2 bg-gray-50/50 border-b border-gray-100/50">
+          ON TRACK <span id="onTrackCount">7</span>
+        </div>
+
+        <!-- Card 3: Grey -- Member C -->
+        <div id="card-3" class="thread-card py-3 px-4 cursor-pointer transition-bg duration-200 border-b border-gray-100 bg-gray-50"
+             data-status="grey" data-assignee="me" data-elapsed="1335" data-name="Member C" data-trip="Amalfi Coast Getaway"
+             onclick="selectCard('card-3')">
+          <div class="flex items-center">
+            <div class="relative">
+              <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-white font-semibold text-base overflow-hidden">
+                <span class="text-amber-700 font-semibold">MC</span>
+              </div>
+            </div>
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="flex justify-between items-start min-w-0 gap-2">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <h3 class="font-medium text-sm min-w-0 break-words">Travel ops | Member C</h3>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 flex-shrink-0">Main</span>
+                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">12:18 PM</span>
+              </div>
+              <div class="flex items-center mt-1 min-w-0">
+                <p class="text-sm text-gray-600 truncate flex-1 min-w-0">Would love a cooking class in Ravello</p>
+              </div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
+                <span class="text-[10px] font-medium text-gray-500 timer-display">7:45 left</span>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100/60 text-gray-600 ml-auto">Amalfi Coast</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Grey -- Member E -->
+        <div id="card-4" class="thread-card py-3 px-4 cursor-pointer transition-bg duration-200 border-b border-gray-100 bg-gray-50"
+             data-status="grey" data-assignee="other" data-elapsed="990" data-name="Member E" data-trip="Maldives Anniversary"
+             onclick="selectCard('card-4')">
+          <div class="flex items-center">
+            <div class="relative">
+              <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-white font-semibold text-base overflow-hidden">
+                <span class="text-emerald-700 font-semibold">ME</span>
+              </div>
+            </div>
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="flex justify-between items-start min-w-0 gap-2">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <h3 class="font-medium text-sm min-w-0 break-words">Travel ops | Member E</h3>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 flex-shrink-0">Main</span>
+                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">11:52 AM</span>
+              </div>
+              <div class="flex items-center mt-1 min-w-0">
+                <p class="text-sm text-gray-600 truncate flex-1 min-w-0">Is overwater bungalow available?</p>
+              </div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
+                <span class="text-[10px] font-medium text-gray-500 timer-display">13:30 left</span>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100/60 text-gray-600 ml-auto">Maldives</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 9: Grey -- Member G -->
+        <div id="card-9" class="thread-card py-3 px-4 cursor-pointer transition-bg duration-200 border-b border-gray-100 bg-gray-50"
+             data-status="grey" data-assignee="me" data-elapsed="300" data-name="Member G" data-trip="Patagonia Explorer"
+             onclick="selectCard('card-9')">
+          <div class="flex items-center">
+            <div class="relative">
+              <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-white font-semibold text-base overflow-hidden">
+                <span class="text-purple-700 font-semibold">MG</span>
+              </div>
+            </div>
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="flex justify-between items-start min-w-0 gap-2">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <h3 class="font-medium text-sm min-w-0 break-words">Travel ops | Member G</h3>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 flex-shrink-0">Main</span>
+                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">11:25 AM</span>
+              </div>
+              <div class="flex items-center mt-1 min-w-0">
+                <p class="text-sm text-gray-600 truncate flex-1 min-w-0">Looking for glacier hike recommendations</p>
+              </div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="w-2 h-2 rounded-full bg-gray-400 shrink-0"></span>
+                <span class="text-[10px] font-medium text-gray-500 timer-display">25:00 left</span>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100/60 text-gray-600 ml-auto">Patagonia</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Green (Responded) -- Member H -->
+        <div id="card-5" class="thread-card py-3 px-4 cursor-pointer transition-colors duration-200 border-b border-gray-100 hover:bg-gray-50"
+             data-status="green" data-assignee="me" data-elapsed="0" data-name="Member H" data-trip="Big Sur Retreat"
+             onclick="selectCard('card-5')">
+          <div class="flex items-center">
+            <div class="relative">
+              <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-white font-semibold text-base overflow-hidden">
+                <span class="text-indigo-700 font-semibold">MH</span>
+              </div>
+            </div>
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="flex justify-between items-start min-w-0 gap-2">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <h3 class="font-medium text-sm min-w-0 break-words">Travel ops | Member H</h3>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 flex-shrink-0">Main</span>
+                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">11:05 AM</span>
+              </div>
+              <div class="flex items-center mt-1 min-w-0">
+                <p class="text-sm text-gray-600 truncate flex-1 min-w-0">Thank you! The itinerary looks perfect.</p>
+              </div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="text-[10px] font-medium text-green-600">Responded</span>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 ml-auto">Big Sur</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6: Green (Responded) -- Member D -->
+        <div id="card-6" class="thread-card py-3 px-4 cursor-pointer transition-colors duration-200 border-b border-gray-100 hover:bg-gray-50"
+             data-status="green" data-assignee="other" data-elapsed="0" data-name="Member D" data-trip="Swiss Alps Adventure"
+             onclick="selectCard('card-6')">
+          <div class="flex items-center">
+            <div class="relative">
+              <div class="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-white font-semibold text-base overflow-hidden">
+                <span class="text-teal-700 font-semibold">MD</span>
+              </div>
+            </div>
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="flex justify-between items-start min-w-0 gap-2">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <h3 class="font-medium text-sm min-w-0 break-words">Travel ops | Member D</h3>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 flex-shrink-0">Main</span>
+                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">10:42 AM</span>
+              </div>
+              <div class="flex items-center mt-1 min-w-0">
+                <p class="text-sm text-gray-600 truncate flex-1 min-w-0">All set, thanks for the quick response!</p>
+              </div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="text-[10px] font-medium text-green-600">Responded</span>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 ml-auto">Swiss Alps</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 7: Green (Responded) -- Member F -->
+        <div id="card-7" class="thread-card py-3 px-4 cursor-pointer transition-colors duration-200 border-b border-gray-100 hover:bg-gray-50"
+             data-status="green" data-assignee="me" data-elapsed="0" data-name="Member F" data-trip="Santorini Escape"
+             onclick="selectCard('card-7')">
+          <div class="flex items-center">
+            <div class="relative">
+              <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-white font-semibold text-base overflow-hidden">
+                <span class="text-pink-700 font-semibold">MF</span>
+              </div>
+            </div>
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="flex justify-between items-start min-w-0 gap-2">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <h3 class="font-medium text-sm min-w-0 break-words">Travel ops | Member F</h3>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 flex-shrink-0">Main</span>
+                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">10:18 AM</span>
+              </div>
+              <div class="flex items-center mt-1 min-w-0">
+                <p class="text-sm text-gray-600 truncate flex-1 min-w-0">Perfect! Can't wait for the sunset cruise.</p>
+              </div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="text-[10px] font-medium text-green-600">Responded</span>
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 ml-auto">Santorini</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 8: N/A -- Test Account -->
+        <div id="card-8" class="thread-card py-3 px-4 cursor-pointer transition-colors duration-200 border-b border-gray-100 hover:bg-gray-50"
+             data-status="na" data-assignee="other" data-elapsed="0" data-name="Test Account" data-trip="Demo Trip"
+             onclick="selectCard('card-8')">
+          <div class="flex items-center">
+            <div class="relative">
+              <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-white font-semibold text-base overflow-hidden">
+                <span class="text-gray-500 font-semibold">TA</span>
+              </div>
+            </div>
+            <div class="ml-3 flex-1 min-w-0">
+              <div class="flex justify-between items-start min-w-0 gap-2">
+                <div class="flex items-center gap-1.5 flex-1 min-w-0">
+                  <h3 class="font-medium text-sm min-w-0 break-words">Travel ops | Test Account</h3>
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 flex-shrink-0">Main</span>
+                </div>
+                <span class="text-xs text-gray-500 whitespace-nowrap flex-shrink-0">9:55 AM</span>
+              </div>
+              <div class="flex items-center mt-1 min-w-0">
+                <p class="text-sm text-gray-400 truncate flex-1 min-w-0 italic">Internal testing thread</p>
+              </div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 ml-auto">Demo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /Thread list -->
+
+    </div><!-- /Left Panel -->
+
+    <!-- ======== CENTER PANEL: Messages + Composer ======== -->
+    <div class="flex-1 min-w-0 flex flex-col bg-white overflow-hidden">
+
+      <!-- Messages area (scrollable) -->
+      <div class="flex-1 overflow-y-auto p-6 space-y-4">
+
+        <!-- SLA waiting indicator (top of thread) -->
+        <div id="slaWaitingIndicator" class="flex items-center justify-center py-2">
+          <div id="waitingPill" class="flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-200">
+            <span id="waitingDot" class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+            <span id="waitingTimerText" class="text-xs font-medium text-red-600">SLA breached 15:12 ago</span>
+          </div>
+        </div>
+
+        <!-- Sample Messages -->
+        <div class="flex items-start gap-3">
+          <div class="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
+            <span class="text-rose-700 font-semibold text-sm">MA</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline gap-2 mb-1">
+              <span class="font-medium text-sm text-gray-900">Member A partner</span>
+              <span class="text-xs text-gray-400">1:15 PM</span>
+            </div>
+            <div class="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-2.5 inline-block max-w-xl">
+              <p class="text-sm text-gray-700 leading-relaxed">Can we upgrade to a villa with a private pool?</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- More messages would go here -->
+
+      </div><!-- /Messages -->
+
+      <!-- Composer -->
+      <div class="border-t border-gray-200 p-4 bg-white">
+        <div class="border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-200 focus-within:border-blue-400">
+          <div class="flex items-center gap-1 px-2 bg-gray-50 border-b border-gray-200" style="height:36px">
+            <!-- Left: formatting buttons -->
+            <button type="button" class="p-1 hover:bg-gray-200 rounded transition-colors text-gray-700" title="Bold">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>
+            </button>
+            <button type="button" class="p-1 hover:bg-gray-200 rounded transition-colors text-gray-700" title="Italic">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"/></svg>
+            </button>
+            <button type="button" class="p-1 hover:bg-gray-200 rounded transition-colors text-gray-700" title="Strikethrough">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M10 19h4v-3h-4v3zM5 4v3h6v3h2V7h6V4H5zM3 14h18v-2H3v2z"/></svg>
+            </button>
+            <div class="w-px h-4 bg-gray-200 mx-0.5"></div>
+            <button type="button" class="p-1 hover:bg-gray-200 rounded transition-colors text-gray-700" title="Bullet list">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"/></svg>
+            </button>
+            <!-- Right: utility buttons -->
+            <div class="ml-auto flex items-center gap-0.5">
+              <button type="button" class="p-1.5 rounded transition-colors text-gray-400 hover:text-gray-600 hover:bg-gray-100" title="Attach file">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 00-5.656-5.656l-6.586 6.586a6 6 0 008.484 8.484l6.586-6.586"/></svg>
+              </button>
+              <button type="button" class="p-1.5 rounded transition-colors text-gray-400 hover:text-gray-600 hover:bg-gray-100" title="Emoji">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M8 13s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+              </button>
+            </div>
+          </div>
+          <textarea id="composerInput" rows="3"
+            class="w-full text-sm text-gray-700 px-3 py-2.5 focus:outline-none resize-none leading-relaxed bg-white"
+            placeholder="Type your message..."></textarea>
+        </div>
+        <div class="flex items-center justify-between mt-2">
+          <div class="flex items-center gap-2">
+            <button type="button" class="text-xs text-gray-500 hover:text-gray-700 font-medium px-2 py-1 rounded hover:bg-gray-100 transition-colors">
+              Templates
+            </button>
+          </div>
+          <div class="flex items-center gap-1">
+            <button class="p-1.5 rounded transition-colors text-gray-400 hover:text-gray-600 hover:bg-gray-100" title="Schedule message" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </button>
+            <button type="submit" disabled class="p-1.5 rounded transition-colors text-gray-300 cursor-not-allowed" title="Send message">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>
+            </button>
+          </div>
+        </div>
+      </div><!-- /Composer -->
+
+    </div><!-- /Center Panel -->
+
+    <!-- ======== RIGHT PANEL (300px) ======== -->
+    <div class="flex-shrink-0 flex flex-col bg-white overflow-hidden" style="width:300px; min-width:300px; max-width:300px">
+
+      <!-- Right panel content -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-4">
+
+        <!-- Alerts button -->
+        <div class="relative">
+          <button class="flex items-center gap-2 px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg text-blue-700 transition-colors font-medium text-sm w-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+            Alerts
+          </button>
+        </div>
+
+        <!-- Search button -->
+        <button class="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-gray-700 transition-colors font-medium text-sm w-full">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+          Search
+        </button>
+
+        <!-- AI Assistant Card -->
+        <div class="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center space-y-3">
+          <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M12 8V4H8"></path><rect width="16" height="12" x="4" y="8" rx="2"></rect><path d="M2 14h2"></path><path d="M20 14h2"></path><path d="M15 13v2"></path><path d="M9 13v2"></path></svg>
+          </div>
+          <h4 class="font-medium text-gray-900">AI Assistant Ready</h4>
+          <p class="text-sm text-gray-400">No messages yet. Ask AI for help with this conversation.</p>
+        </div>
+
+        <!-- AI input -->
+        <div class="border-t border-gray-200 pt-4">
+          <div class="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 p-4">
+            <div class="mb-3">
+              <textarea placeholder="Ask Anything..." class="w-full border-0 bg-transparent text-sm text-gray-700 placeholder-gray-400 focus:outline-none resize-none" rows="2"></textarea>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <button class="p-1.5 rounded transition-colors text-gray-400 hover:text-gray-600" title="Attach">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                </button>
+              </div>
+              <button disabled class="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-400 cursor-not-allowed">Send</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /Right Panel -->
+
+  </div><!-- /Three-Panel Body -->
+
+</div><!-- /Root -->
+
+<!-- ======== CLEAR TIMER CONFIRMATION MODAL ======== -->
+<div id="clearTimerModal"
+  class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50"
+  onclick="if(event.target===this)closeClearModal()">
+  <div class="bg-white rounded-xl shadow-2xl w-[400px] p-6 border border-gray-200">
+    <!-- Warning icon -->
+    <div class="flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 mx-auto mb-4">
+      <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 3h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      </svg>
+    </div>
+    <h3 class="text-lg font-semibold text-gray-900 text-center mb-2">Clear SLA Timer?</h3>
+    <p id="clearModalDesc" class="text-sm text-gray-500 text-center mb-6">
+      This will reset the timer for <span class="font-medium text-gray-700">Member A household</span> and move the thread to Green status. An audit entry will be logged.
+    </p>
+    <div class="flex items-center justify-end gap-3">
+      <button onclick="closeClearModal()" class="text-sm text-gray-500 hover:text-gray-700 font-medium px-3 py-2 transition-colors">Cancel</button>
+      <button onclick="confirmClear()" class="bg-gray-900 text-white text-sm font-medium px-5 py-2 rounded-lg hover:bg-gray-800 transition-colors">Clear Timer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== TOAST NOTIFICATION ======== -->
+<div id="toast"
+  class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-xl shadow-lg flex items-center gap-2 transition-all duration-300">
+  <svg class="w-4 h-4 text-green-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+  </svg>
+  <span id="toastText">Timer cleared</span>
+</div>
+
+<script>
+  // ======== STATE ========
+  let activeTab = 'all';
+  let selectedCardId = 'card-1';
+  let clearTargetCardId = null;
+
+  // ======== THREAD DATA (elapsed in seconds) ========
+  const threadData = {
+    'card-1': { elapsed: 2712, status: 'breached', name: 'Member A household', trip: 'Bali Honeymoon' },
+    'card-2': { elapsed: 2021, status: 'breached', name: 'Member B', trip: 'Tokyo Spring Trip' },
+    'card-3': { elapsed: 1335, status: 'grey', name: 'Member C', trip: 'Amalfi Coast Getaway' },
+    'card-4': { elapsed: 990, status: 'grey', name: 'Member E', trip: 'Maldives Anniversary' },
+    'card-5': { elapsed: 0, status: 'green', name: 'Member H', trip: 'Big Sur Retreat' },
+    'card-6': { elapsed: 0, status: 'green', name: 'Member D', trip: 'Swiss Alps Adventure' },
+    'card-7': { elapsed: 0, status: 'green', name: 'Member F', trip: 'Santorini Escape' },
+    'card-8': { elapsed: 0, status: 'na', name: 'Test Account', trip: 'Demo Trip' },
+    'card-9': { elapsed: 300, status: 'grey', name: 'Member G', trip: 'Patagonia Explorer' },
+  };
+
+  // Thresholds in seconds
+  const SLA_TARGET = 1800;  // 30 min
+  const APPROACHING_THRESHOLD = 300;  // 5 min
+
+  // ======== FORMAT TIME (MM:SS or H:MM:SS) ========
+  function formatTime(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    const mm = String(m).padStart(2, '0');
+    const ss = String(s).padStart(2, '0');
+    if (h > 0) return `${h}:${mm}:${ss}`;
+    return `${mm}:${ss}`;
+  }
+
+  // ======== GET REMAINING TIME ========
+  function getRemaining(elapsed) {
+    return SLA_TARGET - elapsed;
+  }
+
+  // ======== FORMAT COUNTDOWN DISPLAY ========
+  function formatCountdownDisplay(elapsed) {
+    const remaining = getRemaining(elapsed);
+
+    if (remaining > 0) {
+      // Still within SLA
+      return formatTime(remaining) + ' left';
+    } else {
+      // Breached
+      const overdue = Math.abs(remaining);
+      return 'BREACHED ' + formatTime(overdue) + ' ago';
+    }
+  }
+
+  // ======== DETERMINE STATUS FROM ELAPSED ========
+  function determineStatus(elapsed, currentStatus) {
+    if (currentStatus === 'green' || currentStatus === 'na') return currentStatus;
+
+    const remaining = getRemaining(elapsed);
+
+    if (remaining <= 0) return 'breached';  // Red
+    if (remaining <= APPROACHING_THRESHOLD) return 'orange';  // Orange (approaching)
+    return 'grey';  // Grey (on track)
+  }
+
+  // ======== TICK TIMERS ========
+  function tickTimers() {
+    Object.keys(threadData).forEach(id => {
+      const d = threadData[id];
+
+      // Only tick active timers (not green/na)
+      if (d.status === 'breached' || d.status === 'orange' || d.status === 'grey') {
+        d.elapsed++;
+
+        const previousStatus = d.status;
+        d.status = determineStatus(d.elapsed, d.status);
+
+        // Handle status transitions
+        if (previousStatus !== d.status) {
+          if (d.status === 'orange' && previousStatus === 'grey') {
+            transitionCardToOrange(id);
+          } else if (d.status === 'breached' && previousStatus === 'orange') {
+            transitionCardToBreached(id);
+          }
+        }
+
+        // Update timer display on card
+        const card = document.getElementById(id);
+        if (card) {
+          const timerEl = card.querySelector('.timer-display');
+          if (timerEl) timerEl.textContent = formatCountdownDisplay(d.elapsed);
+        }
+
+        // Update header if this card is selected
+        if (id === selectedCardId) {
+          updateHeaderSla(d);
+        }
+      }
+    });
+  }
+
+  // ======== TRANSITION GREY -> ORANGE ========
+  function transitionCardToOrange(cardId) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+
+    card.setAttribute('data-status', 'orange');
+    card.classList.remove('bg-gray-50');
+    card.classList.add('bg-amber-50');
+
+    // Update dot color
+    const dot = card.querySelector('.rounded-full.bg-gray-400');
+    if (dot) {
+      dot.classList.remove('bg-gray-400');
+      dot.classList.add('bg-amber-500');
+    }
+
+    // Update timer text color
+    const timer = card.querySelector('.timer-display');
+    if (timer) {
+      timer.classList.remove('text-gray-500');
+      timer.classList.add('text-amber-600');
+    }
+
+    // Update trip badge
+    const badge = card.querySelector('.bg-gray-100\\/60');
+    if (badge) {
+      badge.classList.remove('bg-gray-100/60', 'text-gray-600');
+      badge.classList.add('bg-amber-100/60', 'text-amber-600');
+    }
+
+    updateBadgeCounts();
+    updateSectionCounts();
+
+    // If this card is selected, update header
+    if (cardId === selectedCardId) {
+      updateHeaderSla(threadData[cardId]);
+      updateClearTimerButton(threadData[cardId]);
+    }
+  }
+
+  // ======== TRANSITION ORANGE -> BREACHED ========
+  function transitionCardToBreached(cardId) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+
+    card.setAttribute('data-status', 'breached');
+    card.classList.remove('bg-amber-50');
+    card.classList.add('bg-red-50');
+
+    // Update dot color
+    const dot = card.querySelector('.rounded-full.bg-amber-500');
+    if (dot) {
+      dot.classList.remove('bg-amber-500');
+      dot.classList.add('bg-red-500');
+    }
+
+    // Update timer text color
+    const timer = card.querySelector('.timer-display');
+    if (timer) {
+      timer.classList.remove('text-amber-600');
+      timer.classList.add('text-red-600');
+    }
+
+    // Update trip badge
+    const badge = card.querySelector('.bg-amber-100\\/60');
+    if (badge) {
+      badge.classList.remove('bg-amber-100/60', 'text-amber-600');
+      badge.classList.add('bg-red-100/60', 'text-red-600');
+    }
+
+    // Move card to Breached section
+    const breachedSection = document.getElementById('sectionBreached');
+    if (breachedSection && card) {
+      breachedSection.after(card);
+    }
+
+    updateBadgeCounts();
+    updateSectionCounts();
+
+    // If this card is selected, update header
+    if (cardId === selectedCardId) {
+      updateHeaderSla(threadData[cardId]);
+      updateClearTimerButton(threadData[cardId]);
+    }
+  }
+
+  // ======== TAB SWITCHING ========
+  function switchTab(tab) {
+    activeTab = tab;
+    const tabAllEl = document.getElementById('tabAll');
+    const tabMyEl = document.getElementById('tabMy');
+
+    if (tab === 'all') {
+      tabAllEl.className = 'px-0 py-3 mr-5 text-sm font-medium flex items-center cursor-pointer whitespace-nowrap transition-colors duration-200 text-blue-600 border-b-2 border-blue-600';
+      tabMyEl.className = 'px-0 py-3 mr-4 text-sm font-medium flex items-center cursor-pointer whitespace-nowrap transition-colors duration-200 text-gray-500 hover:text-gray-700';
+    } else {
+      tabMyEl.className = 'px-0 py-3 mr-4 text-sm font-medium flex items-center cursor-pointer whitespace-nowrap transition-colors duration-200 text-blue-600 border-b-2 border-blue-600';
+      tabAllEl.className = 'px-0 py-3 mr-5 text-sm font-medium flex items-center cursor-pointer whitespace-nowrap transition-colors duration-200 text-gray-500 hover:text-gray-700';
+    }
+
+    // Filter cards
+    document.querySelectorAll('.thread-card').forEach(card => {
+      if (tab === 'my' && card.getAttribute('data-assignee') !== 'me') {
+        card.classList.add('hidden');
+      } else {
+        card.classList.remove('hidden');
+      }
+    });
+
+    updateBadgeCounts();
+    updateSectionCounts();
+  }
+
+  // ======== UPDATE BADGE COUNTS ========
+  function updateBadgeCounts() {
+    let allUnanswered = 0;
+    let myUnanswered = 0;
+
+    Object.keys(threadData).forEach(id => {
+      const d = threadData[id];
+      if (d.status === 'breached' || d.status === 'orange' || d.status === 'grey') {
+        allUnanswered++;
+        const card = document.getElementById(id);
+        if (card && card.getAttribute('data-assignee') === 'me') myUnanswered++;
+      }
+    });
+
+    const badgeAll = document.getElementById('badgeAll');
+    const badgeMy = document.getElementById('badgeMy');
+
+    if (allUnanswered > 0) {
+      badgeAll.textContent = allUnanswered;
+      badgeAll.className = 'text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-none ml-1.5 bg-red-500 text-white';
+    } else {
+      badgeAll.textContent = '0';
+      badgeAll.className = 'text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-none ml-1.5 bg-gray-200 text-gray-500';
+    }
+
+    if (myUnanswered > 0) {
+      badgeMy.textContent = myUnanswered;
+      badgeMy.className = 'text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-none ml-1.5 bg-red-500 text-white';
+    } else {
+      badgeMy.textContent = '0';
+      badgeMy.className = 'text-[10px] font-semibold rounded-full px-1.5 py-0.5 leading-none ml-1.5 bg-gray-200 text-gray-500';
+    }
+  }
+
+  // ======== UPDATE SECTION COUNTS ========
+  function updateSectionCounts() {
+    let breachedCount = 0;
+    let approachingCount = 0;
+    let onTrackCount = 0;
+
+    document.querySelectorAll('.thread-card').forEach(card => {
+      if (card.classList.contains('hidden')) return;
+      const status = card.getAttribute('data-status');
+      if (status === 'breached') breachedCount++;
+      else if (status === 'orange') approachingCount++;
+      else onTrackCount++;  // grey + green + na
+    });
+
+    document.getElementById('breachedCount').textContent = breachedCount;
+    document.getElementById('approachingCount').textContent = approachingCount;
+    document.getElementById('onTrackCount').textContent = onTrackCount;
+
+    // Show/hide section headers
+    document.getElementById('sectionBreached').classList.toggle('hidden', breachedCount === 0);
+    document.getElementById('sectionApproaching').classList.toggle('hidden', approachingCount === 0);
+    document.getElementById('sectionOnTrack').classList.toggle('hidden', onTrackCount === 0);
+  }
+
+  // ======== SELECT CARD ========
+  function selectCard(cardId) {
+    // Remove selection from previous
+    document.querySelectorAll('.thread-card').forEach(card => {
+      card.classList.remove('border-l-2', 'border-l-blue-500', 'bg-blue-50');
+      // Restore tint based on status
+      const status = card.getAttribute('data-status');
+      if (status === 'breached') {
+        card.classList.add('bg-red-50');
+      } else if (status === 'orange') {
+        card.classList.add('bg-amber-50');
+      } else if (status === 'grey') {
+        card.classList.add('bg-gray-50');
+      }
+    });
+
+    selectedCardId = cardId;
+    const card = document.getElementById(cardId);
+    const d = threadData[cardId];
+    if (!card || !d) return;
+
+    // Apply selection style
+    if (d.status !== 'breached') card.classList.remove('bg-red-50');
+    if (d.status !== 'orange') card.classList.remove('bg-amber-50');
+    if (d.status !== 'grey') card.classList.remove('bg-gray-50');
+    card.classList.add('border-l-2', 'border-l-blue-500');
+    if (d.status === 'green' || d.status === 'na') card.classList.add('bg-blue-50');
+
+    // Update header traveler ID
+    document.getElementById('headerTravelerId').textContent = 'Travel ops | ' + d.name;
+    updateHeaderSla(d);
+    updateClearTimerButton(d);
+  }
+
+  // ======== UPDATE HEADER SLA BADGE ========
+  function updateHeaderSla(d) {
+    const badge = document.getElementById('headerSlaBadge');
+    const dot = document.getElementById('headerSlaDot');
+    const text = document.getElementById('headerSlaText');
+    const waitingIndicator = document.getElementById('slaWaitingIndicator');
+    const waitingText = document.getElementById('waitingTimerText');
+    const waitingPill = document.getElementById('waitingPill');
+    const waitingDot = document.getElementById('waitingDot');
+
+    if (d.status === 'breached') {
+      badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-200';
+      dot.className = 'w-2 h-2 rounded-full bg-red-500';
+      text.className = 'text-[10px] font-semibold text-red-600';
+      text.textContent = formatCountdownDisplay(d.elapsed);
+      badge.classList.remove('hidden');
+      if (waitingIndicator) {
+        waitingIndicator.classList.remove('hidden');
+        waitingPill.className = 'flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 border border-red-200';
+        waitingDot.className = 'w-2 h-2 rounded-full bg-red-500 animate-pulse';
+        waitingText.className = 'text-xs font-medium text-red-600';
+        const overdue = Math.abs(getRemaining(d.elapsed));
+        waitingText.textContent = 'SLA breached ' + formatTime(overdue) + ' ago';
+      }
+    } else if (d.status === 'orange') {
+      badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 border border-amber-200';
+      dot.className = 'w-2 h-2 rounded-full bg-amber-500';
+      text.className = 'text-[10px] font-semibold text-amber-600';
+      text.textContent = formatCountdownDisplay(d.elapsed);
+      badge.classList.remove('hidden');
+      if (waitingIndicator) {
+        waitingIndicator.classList.remove('hidden');
+        waitingPill.className = 'flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 border border-amber-200';
+        waitingDot.className = 'w-2 h-2 rounded-full bg-amber-500 animate-pulse';
+        waitingText.className = 'text-xs font-medium text-amber-600';
+        const remaining = getRemaining(d.elapsed);
+        waitingText.textContent = 'SLA breach in ' + formatTime(remaining);
+      }
+    } else if (d.status === 'grey') {
+      badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-50 border border-gray-200';
+      dot.className = 'w-2 h-2 rounded-full bg-gray-400';
+      text.className = 'text-[10px] font-semibold text-gray-500';
+      text.textContent = formatCountdownDisplay(d.elapsed);
+      badge.classList.remove('hidden');
+      if (waitingIndicator) {
+        waitingIndicator.classList.remove('hidden');
+        waitingPill.className = 'flex items-center gap-2 px-4 py-2 rounded-full bg-gray-50 border border-gray-200';
+        waitingDot.className = 'w-2 h-2 rounded-full bg-gray-400 animate-pulse';
+        waitingText.className = 'text-xs font-medium text-gray-500';
+        const remaining = getRemaining(d.elapsed);
+        waitingText.textContent = 'SLA breach in ' + formatTime(remaining);
+      }
+    } else if (d.status === 'green') {
+      badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-50 border border-green-200';
+      dot.className = 'w-2 h-2 rounded-full bg-green-500';
+      text.className = 'text-[10px] font-semibold text-green-600';
+      text.textContent = 'Responded';
+      badge.classList.remove('hidden');
+      if (waitingIndicator) waitingIndicator.classList.add('hidden');
+    } else {
+      badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-50 border border-gray-200';
+      dot.className = 'w-2 h-2 rounded-full bg-gray-300';
+      text.className = 'text-[10px] font-semibold text-gray-400';
+      text.textContent = 'N/A';
+      badge.classList.remove('hidden');
+      if (waitingIndicator) waitingIndicator.classList.add('hidden');
+    }
+  }
+
+  // ======== UPDATE CLEAR TIMER BUTTON ========
+  function updateClearTimerButton(d) {
+    const btn = document.getElementById('clearTimerBtn');
+    if (d.status === 'breached') {
+      btn.className = 'inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-red-700 hover:bg-red-100 transition-colors duration-200';
+      btn.classList.remove('hidden');
+    } else if (d.status === 'orange') {
+      btn.className = 'inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors duration-200';
+      btn.classList.remove('hidden');
+    } else if (d.status === 'grey') {
+      btn.className = 'inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors duration-200';
+      btn.classList.remove('hidden');
+    } else {
+      btn.classList.add('hidden');
+    }
+  }
+
+  // ======== CLEAR TIMER MODAL ========
+  function openClearModal() {
+    clearTargetCardId = selectedCardId;
+    const d = threadData[clearTargetCardId];
+    if (!d) return;
+    document.getElementById('clearModalDesc').innerHTML =
+      'This will reset the timer for <span class="font-medium text-gray-700">' + d.name + '</span> and move the thread to Green status. An audit entry will be logged.';
+    document.getElementById('clearTimerModal').classList.remove('hidden');
+  }
+
+  function closeClearModal() {
+    document.getElementById('clearTimerModal').classList.add('hidden');
+    clearTargetCardId = null;
+  }
+
+  function confirmClear() {
+    const cardId = clearTargetCardId;
+    const d = threadData[cardId];
+    if (!d) return;
+
+    // Transition to green
+    d.status = 'green';
+    d.elapsed = 0;
+
+    const card = document.getElementById(cardId);
+    if (card) {
+      card.setAttribute('data-status', 'green');
+      card.classList.remove('bg-red-50', 'bg-amber-50', 'bg-gray-50', 'border-l-red-400');
+      card.classList.add('hover:bg-gray-50');
+
+      // Update dot
+      const dots = card.querySelectorAll('.rounded-full');
+      dots.forEach(dot => {
+        if (dot.classList.contains('bg-red-500') || dot.classList.contains('bg-amber-500') || dot.classList.contains('bg-gray-400')) {
+          dot.classList.remove('bg-red-500', 'bg-amber-500', 'bg-gray-400');
+          dot.classList.add('bg-green-500');
+        }
+      });
+
+      // Update timer display to "Responded"
+      const timer = card.querySelector('.timer-display');
+      if (timer) {
+        timer.textContent = 'Responded';
+        timer.classList.remove('text-red-600', 'text-amber-600', 'text-gray-500');
+        timer.classList.add('text-green-600');
+      }
+
+      // Update trip badge to neutral
+      const tripBadge = card.querySelector('[class*="bg-red-100"], [class*="bg-amber-100"], [class*="bg-gray-100"]');
+      if (tripBadge) {
+        tripBadge.classList.remove('bg-red-100/60', 'text-red-600', 'bg-amber-100/60', 'text-amber-600', 'bg-gray-100/60', 'text-gray-500');
+        tripBadge.classList.add('bg-gray-100', 'text-gray-600');
+      }
+    }
+
+    // Move card to ON TRACK section
+    const onTrackSection = document.getElementById('sectionOnTrack');
+    if (onTrackSection && card) {
+      onTrackSection.after(card);
+    }
+
+    // Update header
+    if (cardId === selectedCardId) {
+      updateHeaderSla(d);
+      updateClearTimerButton(d);
+    }
+
+    // Update counts
+    updateBadgeCounts();
+    updateSectionCounts();
+
+    // Close modal
+    closeClearModal();
+
+    // Show toast
+    showToast('Timer cleared and thread marked as responded');
+  }
+
+  // ======== SHOW TOAST ========
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toastText');
+    toastText.textContent = message;
+    toast.classList.remove('hidden');
+    setTimeout(() => {
+      toast.classList.add('hidden');
+    }, 3000);
+  }
+
+  // ======== INITIALIZE ========
+  function init() {
+    // Update initial displays
+    Object.keys(threadData).forEach(id => {
+      const d = threadData[id];
+      if (d.status !== 'green' && d.status !== 'na') {
+        const card = document.getElementById(id);
+        if (card) {
+          const timerEl = card.querySelector('.timer-display');
+          if (timerEl) timerEl.textContent = formatCountdownDisplay(d.elapsed);
+        }
+      }
+    });
+
+    // Select first card
+    selectCard('card-1');
+
+    // Update counts
+    updateBadgeCounts();
+    updateSectionCounts();
+
+    // Start ticking
+    setInterval(tickTimers, 1000);
+  }
+
+  // Start on page load
+  init();
+</script>
+
+</body>
+</html>

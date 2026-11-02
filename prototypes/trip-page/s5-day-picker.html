@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S5 — Day Picker</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../_shared/fonts.css">
+<link rel="stylesheet" href="tailwind.css">
+  <style>
+    .hl-highlight {
+      outline: 2px solid #4f46e5 !important;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.15) !important;
+      border-radius: inherit;
+      transition: outline 0.2s, box-shadow 0.2s;
+    }
+  </style>
+</head>
+<body class="bg-gray-300 min-h-screen font-body flex items-start justify-center gap-5 px-4 py-6">
+<a href="/prototypes/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:8px 12px;border-radius:999px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px/1.3 'Hanken Grotesk',system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #0006">Prototype by Mishal Chowdhury · names and data replaced · back to portfolio</a>
+
+  
+  <div class="shrink-0" style="width:220px; position:sticky; top:24px;">
+    <div class="bg-white rounded-2xl shadow-md px-4 py-3">
+      <span class="text-[10px] font-semibold text-gray-400 tracking-widest uppercase block text-center mb-3">S5 — Day Picker</span>
+      <div class="flex flex-col gap-1.5">
+        <button onclick="switchDemo('navigate')" id="mbtn-navigate" class="mbtn px-3 py-1.5 text-xs rounded-full border font-medium transition-all text-center">Navigate</button>
+        <button onclick="switchDemo('single')" id="mbtn-single" class="mbtn px-3 py-1.5 text-xs rounded-full border font-medium transition-all text-center">Schedule: Single</button>
+        <button onclick="switchDemo('multi')" id="mbtn-multi" class="mbtn px-3 py-1.5 text-xs rounded-full border font-medium transition-all text-center">Schedule: Multi</button>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="relative overflow-hidden flex flex-col" style="width:390px; height:844px; border-radius:48px; border:10px solid #23293a; box-shadow:0 40px 100px rgba(0,0,0,0.4); background:#f6f4f0;">
+
+    
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-[#23293a] rounded-b-3xl z-30"></div>
+
+    
+    <div class="flex justify-between items-center px-7 pt-8 pb-1 bg-[#f6f4f0] shrink-0">
+      <span class="text-[11px] font-bold text-[#23293a]">9:41</span>
+      <div class="flex items-center gap-1.5">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+          <rect x="0" y="3.5" width="2.5" height="6.5" rx="0.8" fill="#23293a"/>
+          <rect x="3.5" y="2" width="2.5" height="8" rx="0.8" fill="#23293a"/>
+          <rect x="7" y="0.5" width="2.5" height="9.5" rx="0.8" fill="#23293a"/>
+        </svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none">
+          <rect x="0.5" y="0.5" width="20" height="10" rx="3" stroke="#23293a" stroke-opacity="0.3"/>
+          <rect x="2" y="2" width="14" height="7" rx="1.5" fill="#23293a"/>
+        </svg>
+      </div>
+    </div>
+
+    
+    <div class="relative flex-1 overflow-hidden">
+
+      
+      <div class="px-4 pt-3 space-y-2 blur-sm select-none pointer-events-none">
+        <div class="bg-[#23293a] rounded-2xl h-32"></div>
+        <div class="bg-[#4f46e5]/10 rounded-xl h-10"></div>
+        <div class="bg-white rounded-2xl h-28 border border-[#eae3d7]"></div>
+        <div class="bg-white rounded-2xl h-24 border border-[#eae3d7]"></div>
+      </div>
+
+      
+      <div class="absolute inset-0 bg-[#23293a]/40 z-10"></div>
+
+      
+      <div class="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl z-20">
+
+        
+        <div class="flex justify-center pt-3 pb-1">
+          <div class="w-10 h-1 rounded-full bg-gray-300"></div>
+        </div>
+
+        
+        <div class="px-6 py-4 border-b border-[#eae3d7]">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-[10px] font-semibold tracking-[0.15em] text-gray-400 uppercase mb-0.5" id="header-context">Add to trip</div>
+              <div class="text-[16px] font-semibold text-[#23293a]" id="picker-title">Select a day</div>
+            </div>
+            <button onclick="window.location.href='s1-trip-page.html'" class="p-2 rounded-xl bg-[#f6f4f0] hover:bg-[#eae3d7] transition-colors">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6L18 18" stroke="#23293a" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          
+          <div id="component-context" class="mt-3 flex items-center gap-2.5 bg-[#f6f4f0] rounded-xl px-3 py-2.5 border border-[#eae3d7]">
+            <div class="w-8 h-8 rounded-lg shrink-0 flex items-center justify-center" style="background:linear-gradient(135deg,#5b2a82,#9b6fc8)">
+              <span class="text-white text-[10px]">🤿</span>
+            </div>
+            <div>
+              <div class="text-[12px] font-semibold text-[#23293a]">Private Snorkelling Safari</div>
+              <div class="text-[10px] text-gray-400">Activity · ~3h — assign to a day</div>
+            </div>
+          </div>
+        </div>
+
+        
+        <div id="schedule-ui">
+
+          
+          <div class="px-6 pt-4 pb-2" id="mode-toggle-section">
+            <div class="flex bg-[#f6f4f0] rounded-xl p-1 border border-[#eae3d7]">
+              <button onclick="setMode('single')" id="toggle-single" class="flex-1 py-2 rounded-lg text-[11px] font-semibold transition-all text-[#23293a]" style="background:white; box-shadow:0 1px 3px rgba(0,0,0,0.08)">Single day</button>
+              <button onclick="setMode('multi')" id="toggle-multi" class="flex-1 py-2 rounded-lg text-[11px] font-semibold transition-all text-gray-400">Multi-day</button>
+            </div>
+          </div>
+
+          
+          <div class="px-6 py-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="text-[12px] font-semibold text-[#23293a]">March 2026 — Trip Days</div>
+              <div class="text-[10px] text-gray-400" id="selection-label">No day selected</div>
+            </div>
+            <div class="grid grid-cols-7 mb-2">
+              <div class="text-center text-[9px] font-semibold text-gray-400">S</div>
+              <div class="text-center text-[9px] font-semibold text-gray-400">M</div>
+              <div class="text-center text-[9px] font-semibold text-gray-400">T</div>
+              <div class="text-center text-[9px] font-semibold text-gray-400">W</div>
+              <div class="text-center text-[9px] font-semibold text-gray-400">T</div>
+              <div class="text-center text-[9px] font-semibold text-gray-400">F</div>
+              <div class="text-center text-[9px] font-semibold text-gray-400">S</div>
+            </div>
+            <div class="grid grid-cols-7 gap-y-1.5" id="day-grid"></div>
+            <div class="flex gap-4 mt-4 justify-center">
+              <div class="flex items-center gap-1.5">
+                <div class="w-3 h-3 rounded-full bg-[#4f46e5]"></div>
+                <span class="text-[9px] text-gray-400">Trip day</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <div class="w-3 h-3 rounded-full" style="background:#12B28C"></div>
+                <span class="text-[9px] text-gray-400">Selected</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <div class="w-3 h-3 rounded-full bg-gray-200"></div>
+                <span class="text-[9px] text-gray-400">Outside trip</span>
+              </div>
+            </div>
+          </div>
+
+          
+          <div class="px-6 pb-6 pt-2 border-t border-[#eae3d7] flex gap-3">
+            <button onclick="window.location.href='s1-trip-page.html'" class="flex-1 py-3 rounded-2xl border-2 border-gray-200 text-[13px] font-semibold text-gray-500">Cancel</button>
+            <button id="confirm-btn" onclick="confirmSelection()" class="flex-1 py-3 rounded-2xl text-[13px] font-semibold text-white opacity-40 cursor-not-allowed" style="background:#4f46e5" disabled>Assign Day</button>
+          </div>
+
+        </div>
+
+        
+        <div id="navigate-ui" class="hidden">
+
+          <div class="px-6 pt-4 pb-2">
+            <div class="text-[10px] font-semibold tracking-[0.15em] text-gray-400 uppercase mb-3">Your Itinerary</div>
+          </div>
+
+          <div class="px-4 pb-6 space-y-2 overflow-y-auto" style="max-height:460px" id="nav-day-list">
+            
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    
+    <div id="success-overlay" class="absolute inset-0 bg-[#f6f4f0] flex flex-col items-center justify-center z-40 hidden">
+      <div class="w-20 h-20 rounded-full mb-6 flex items-center justify-center" style="background:#4f46e520">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M8 7V3M16 7V3M4 11H20M5 21H19C20.1 21 21 20.1 21 19V7C21 5.9 20.1 5 19 5H5C3.9 5 3 5.9 3 7V19C3 20.1 3.9 21 5 21Z" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+      <div class="text-[20px] font-semibold text-[#23293a] mb-2" id="success-day-text">Assigned to Day 3!</div>
+      <div class="text-[13px] text-gray-400 text-center px-10 leading-relaxed mb-8">Private Snorkelling Safari has been added to your itinerary.</div>
+      <button onclick="window.location.href='s1-trip-page.html'" class="px-8 py-3 rounded-2xl text-[13px] font-semibold text-white" style="background:#4f46e5">Back to Trip</button>
+    </div>
+
+  </div>
+
+  
+
+  <script>
+    // Trip: Mar 15–22 (Days 1–7)
+    const TRIP_START = new Date(2026, 2, 15);
+    const TRIP_END   = new Date(2026, 2, 22);
+    const TRIP_DAYS  = 7;
+
+    let selectionMode = 'single'; // 'single' | 'multi'
+    let selectedDays = new Set();
+    let currentViewMode = 'schedule'; // 'schedule' | 'navigate'
+
+    const MARCH_START_COL = 0;
+    const DAYS_IN_MARCH = 31;
+
+    // Day details for navigation mode
+    const DAY_DATA = [
+      { day: 1, date: 'Sat, Mar 15', location: 'Malé — Arrival', icon: '✈️',  items: 2 },
+      { day: 2, date: 'Sun, Mar 16', location: 'Soneva Jani — Noonu Atoll', icon: '🏝️', items: 4 },
+      { day: 3, date: 'Mon, Mar 17', location: 'Soneva Jani — Noonu Atoll', icon: '🤿', items: 3 },
+      { day: 4, date: 'Tue, Mar 18', location: 'Soneva Jani — Noonu Atoll', icon: '🍽️', items: 3 },
+      { day: 5, date: 'Wed, Mar 19', location: 'St. Regis — Malé Atoll', icon: '🚤', items: 4 },
+      { day: 6, date: 'Thu, Mar 20', location: 'St. Regis — Malé Atoll', icon: '💆', items: 3 },
+      { day: 7, date: 'Fri, Mar 21', location: 'St. Regis — Malé Atoll', icon: '🌅', items: 2 },
+      { day: 8, date: 'Sat, Mar 22', location: 'Malé — Departure', icon: '✈️',  items: 1 }
+    ];
+
+    function isTrip(day) { return day >= 15 && day <= 22; }
+    function tripDayNum(day) { return day - 14; }
+
+    /* ===== NAVIGATE MODE ===== */
+    function buildNavList() {
+      const list = document.getElementById('nav-day-list');
+      list.innerHTML = DAY_DATA.map(d => `
+        <a href="s1-trip-page.html#day-${d.day}" class="flex items-center gap-3 bg-white rounded-2xl border border-[#eae3d7] px-4 py-3.5 hover:border-[#4f46e5] hover:bg-[#4f46e5]/[0.03] transition-all cursor-pointer group">
+          <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background:#4f46e512">
+            <span class="text-[18px]">${d.icon}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-[13px] font-semibold text-[#23293a]">Day ${d.day}</span>
+              <span class="text-[10px] text-gray-400">${d.date}</span>
+            </div>
+            <div class="text-[11px] text-gray-500 mt-0.5">${d.location}</div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <span class="text-[10px] text-gray-400">${d.items} items</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="text-gray-300 group-hover:text-[#4f46e5] transition-colors"><path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    function showNavigateMode() {
+      currentViewMode = 'navigate';
+      document.getElementById('schedule-ui').classList.add('hidden');
+      document.getElementById('navigate-ui').classList.remove('hidden');
+      document.getElementById('component-context').classList.add('hidden');
+      document.getElementById('header-context').textContent = 'Maldives Honeymoon';
+      document.getElementById('picker-title').textContent = 'Jump to day';
+      buildNavList();
+      highlightDemoBtn('navigate');
+    }
+
+    function showScheduleMode(mode) {
+      currentViewMode = 'schedule';
+      document.getElementById('schedule-ui').classList.remove('hidden');
+      document.getElementById('navigate-ui').classList.add('hidden');
+      document.getElementById('component-context').classList.remove('hidden');
+      document.getElementById('header-context').textContent = 'Add to trip';
+      setMode(mode || 'single');
+    }
+
+    /* ===== SCHEDULE MODE (existing) ===== */
+    function buildGrid() {
+      const grid = document.getElementById('day-grid');
+      grid.innerHTML = '';
+
+      for (let i = 0; i < MARCH_START_COL; i++) {
+        grid.insertAdjacentHTML('beforeend', '<div></div>');
+      }
+
+      for (let d = 1; d <= DAYS_IN_MARCH; d++) {
+        const isT = isTrip(d);
+        const dayNum = isT ? tripDayNum(d) : null;
+        const isSel = isT && selectedDays.has(dayNum);
+
+        let cellClass, labelClass, bg = '', border = '';
+
+        if (isSel) {
+          bg = 'background:#12B28C';
+          cellClass = 'rounded-full flex flex-col items-center justify-center text-white cursor-pointer select-none transition-all';
+          labelClass = 'text-[11px] font-semibold';
+        } else if (isT) {
+          bg = 'background:#4f46e518';
+          border = 'border:1.5px solid #4f46e5';
+          cellClass = 'rounded-full flex flex-col items-center justify-center text-[#4f46e5] cursor-pointer select-none transition-all hover:bg-[#4f46e530]';
+          labelClass = 'text-[11px] font-semibold';
+        } else {
+          cellClass = 'rounded-full flex flex-col items-center justify-center text-gray-300 cursor-not-allowed select-none';
+          labelClass = 'text-[11px]';
+        }
+
+        const dayLabel = isT ? `<div class="text-[7px] font-bold mt-0.5 opacity-70">D${dayNum}</div>` : '';
+
+        grid.insertAdjacentHTML('beforeend', `
+          <div style="height:42px; ${bg}; ${border}"
+               class="${cellClass}"
+               onclick="${isT ? `toggleDay(${dayNum})` : ''}">
+            <div class="${labelClass}">${d}</div>
+            ${dayLabel}
+          </div>
+        `);
+      }
+    }
+
+    function toggleDay(dayNum) {
+      if (selectionMode === 'single') {
+        selectedDays = new Set([dayNum]);
+      } else {
+        if (selectedDays.has(dayNum)) {
+          selectedDays.delete(dayNum);
+        } else {
+          selectedDays.add(dayNum);
+        }
+      }
+      updateUI();
+    }
+
+    function updateUI() {
+      buildGrid();
+      const label = document.getElementById('selection-label');
+      const btn = document.getElementById('confirm-btn');
+
+      if (selectedDays.size === 0) {
+        label.textContent = 'No day selected';
+        btn.disabled = true;
+        btn.style.opacity = '0.4';
+        btn.style.cursor = 'not-allowed';
+      } else if (selectedDays.size === 1) {
+        const d = [...selectedDays][0];
+        const dates = ['Mar 15', 'Mar 16', 'Mar 17', 'Mar 18', 'Mar 19', 'Mar 20', 'Mar 21', 'Mar 22'];
+        label.textContent = `Day ${d} · ${dates[d - 1]}`;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+      } else {
+        const sorted = [...selectedDays].sort((a, b) => a - b);
+        label.textContent = `Days ${sorted.join(', ')}`;
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+      }
+    }
+
+    function setMode(mode) {
+      selectionMode = mode;
+      if (mode === 'single' && selectedDays.size > 1) {
+        selectedDays = new Set([[...selectedDays][0]]);
+      }
+
+      document.getElementById('picker-title').textContent = mode === 'single' ? 'Select a day' : 'Select days';
+
+      const ts = document.getElementById('toggle-single');
+      const tm = document.getElementById('toggle-multi');
+      if (mode === 'single') {
+        ts.style.background = 'white'; ts.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)'; ts.style.color = '#23293a';
+        tm.style.background = ''; tm.style.boxShadow = ''; tm.style.color = '#9ca3af';
+      } else {
+        tm.style.background = 'white'; tm.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)'; tm.style.color = '#23293a';
+        ts.style.background = ''; ts.style.boxShadow = ''; ts.style.color = '#9ca3af';
+      }
+
+      highlightDemoBtn(mode);
+      updateUI();
+    }
+
+    function highlightDemoBtn(activeId) {
+      document.querySelectorAll('.mbtn').forEach(btn => {
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+        btn.className = 'mbtn px-3 py-1 text-xs rounded-full border border-gray-300 text-gray-600 font-medium transition-all';
+      });
+      const ab = document.getElementById('mbtn-' + activeId);
+      if (ab) { ab.style.background = '#4f46e5'; ab.style.borderColor = '#4f46e5'; ab.style.color = 'white'; }
+    }
+
+    function switchDemo(mode) {
+      if (mode === 'navigate') {
+        showNavigateMode();
+      } else {
+        showScheduleMode(mode);
+      }
+    }
+
+    function confirmSelection() {
+      if (selectedDays.size === 0) return;
+      const sorted = [...selectedDays].sort((a, b) => a - b);
+      const label = sorted.length === 1 ? `Day ${sorted[0]}` : `Days ${sorted.join(', ')}`;
+      document.getElementById('success-day-text').textContent = `Assigned to ${label}!`;
+      document.getElementById('success-overlay').classList.remove('hidden');
+    }
+
+    // Init — check URL param
+    const params = new URLSearchParams(window.location.search);
+    const modeParam = params.get('mode');
+    if (modeParam === 'navigate') {
+      showNavigateMode();
+    } else {
+      showScheduleMode('single');
+    }
+
+    const HIGHLIGHT_MAP = {
+      'byday':     ['#nav-day-list', '#navigate-ui'],
+      'dayjump':   ['#navigate-ui'],
+      'actiondot': ['#day-grid'],
+      'calendar':  ['#day-grid', '#mode-toggle-section']
+    };
+
+    function toggleHighlight(checkbox) {
+      const key = checkbox.dataset.hl;
+      if (!key || !HIGHLIGHT_MAP[key]) return;
+      const selectors = HIGHLIGHT_MAP[key];
+      selectors.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => {
+          if (checkbox.checked) {
+            if (!el.style.position || el.style.position === 'static') el.style.position = 'relative';
+            el.classList.add('hl-highlight');
+          } else {
+            const stillHighlighted = Array.from(document.querySelectorAll('.hl-check:checked')).some(cb => {
+              const cbKey = cb.dataset.hl;
+              if (!cbKey || cbKey === key) return false;
+              const cbSels = HIGHLIGHT_MAP[cbKey] || [];
+              return cbSels.some(s => { try { return el.matches(s); } catch(e) { return false; } });
+            });
+            if (!stillHighlighted) el.classList.remove('hl-highlight');
+          }
+        });
+      });
+    }
+
+    function updateCount() {
+      const total = document.querySelectorAll('.hl-check').length;
+      const checked = document.querySelectorAll('.hl-check:checked').length;
+      const counter = document.getElementById('hl-counter');
+      if (!counter) return;
+      counter.textContent = checked + ' / ' + total;
+      counter.style.color = checked === total ? '#12B28C' : '#9ca3af';
+    }
+
+    updateCount();
+  </script>
+
+</body>
+</html>

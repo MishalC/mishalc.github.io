@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SLA Notifications · S3 — Management Dashboard</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../_shared/fonts.css">
+<link rel="stylesheet" href="tailwind.css">
+</head>
+<body class="font-sans antialiased">
+<a href="/prototypes/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:8px 12px;border-radius:999px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px/1.3 'Hanken Grotesk',system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #0006">Prototype by Mishal Chowdhury · names and data replaced · back to portfolio</a>
+
+<div class="flex flex-col h-screen bg-gray-50 overflow-hidden">
+
+  <!-- ── TOP HEADER ── -->
+  <header class="bg-white border-b border-gray-200 px-6 flex items-center transition-colors duration-200 shrink-0" style="height:64px">
+    <!-- Left: Travel ops SVG logo (links to index) -->
+    <a href="s1-thread-list.html" class="flex items-center" title="Back to prototype index">
+      <span class="text-base font-semibold tracking-tight">Travel ops</span>
+    </a>
+    <!-- Right: status + icon buttons + avatar -->
+    <div class="ml-auto flex items-center space-x-3">
+      <!-- WhatsApp Down status pill -->
+      <div class="flex items-center gap-1.5 text-xs text-gray-600 border border-gray-200 rounded-full px-3 py-1 bg-white">
+        <span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>
+        WhatsApp Down
+      </div>
+      <!-- Hide conversations -->
+      <button class="w-8 h-8 rounded flex border items-center justify-center transition-all duration-200 border-gray-300 bg-white text-gray-600 hover:bg-gray-50" title="Hide conversations">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+      </button>
+      <!-- Dark mode -->
+      <button class="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all duration-200" title="Switch to dark mode">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+      <!-- Calendar -->
+      <button class="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all duration-200" title="Calendar">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/></svg>
+      </button>
+      <!-- Settings -->
+      <button class="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all duration-200" title="Settings">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <!-- Scheduled messages (clock) -->
+      <button class="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all duration-200 relative" title="Scheduled Messages">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 3"/>
+        </svg>
+      </button>
+      <!-- Team -->
+      <button class="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all duration-200" title="Team">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      </button>
+      <!-- User avatar -->
+      <div class="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center text-xs font-bold text-white cursor-pointer">M</div>
+    </div>
+  </header>
+
+  <!-- ── CONTENT AREA ── -->
+  <div class="flex-1 overflow-y-auto">
+    <div class="max-w-7xl mx-auto px-8 py-6">
+
+      <!-- Breadcrumb -->
+      <p class="text-xs text-gray-400 mb-4">Management &gt; SLA Dashboard</p>
+
+      <!-- Page Header -->
+      <div class="flex items-start justify-between mb-6">
+        <div>
+          <h1 class="text-lg font-bold text-gray-900">SLA Dashboard</h1>
+          <p class="text-sm text-gray-500 mt-0.5">Real-time overview of messaging SLA compliance</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="refreshText" class="text-xs text-gray-400">Last refreshed: 2 seconds ago</span>
+          <button onclick="refreshDashboard()" class="w-8 h-8 rounded border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-all duration-200" title="Refresh">
+            <svg id="refreshIcon" class="w-4 h-4 transition-transform duration-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M20.49 9A9 9 0 005.64 5.64L4 7m16.01 10A9 9 0 0118.36 18.36L20 17"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── KPI CARDS ── -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+
+        <!-- Within SLA -->
+        <div class="bg-white rounded-xl border border-gray-200 p-5 relative overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-1 bg-green-500 rounded-t-xl"></div>
+          <p class="text-3xl font-bold text-green-600 mt-1" id="kpiWithinSla">0</p>
+          <p class="text-xs text-gray-500 mt-1">threads</p>
+        </div>
+
+        <!-- Approaching Violation -->
+        <div class="bg-white rounded-xl border border-gray-200 p-5 relative overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-1 bg-amber-500 rounded-t-xl"></div>
+          <p class="text-3xl font-bold text-amber-600 mt-1" id="kpiYellow">0</p>
+          <p class="text-xs text-gray-500 mt-1">threads in Yellow</p>
+        </div>
+
+        <!-- In Violation -->
+        <div class="bg-white rounded-xl border border-gray-200 p-5 relative overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-1 bg-red-500 rounded-t-xl"></div>
+          <p class="text-3xl font-bold text-red-600 mt-1" id="kpiRed">0</p>
+          <p class="text-xs text-gray-500 mt-1">threads in Red</p>
+        </div>
+
+        <!-- Compliance Rate -->
+        <div class="bg-white rounded-xl border border-gray-200 p-5 relative overflow-hidden">
+          <div class="absolute top-0 left-0 right-0 h-1 bg-blue-500 rounded-t-xl"></div>
+          <p class="text-3xl font-bold text-gray-900 mt-1" id="kpiCompliance">0%</p>
+          <p class="text-xs text-gray-500 mt-1">within SLA</p>
+          <div class="mt-3 h-2 rounded-full bg-gray-200 overflow-hidden">
+            <div id="complianceBar" class="h-full bg-green-500 rounded-full transition-all duration-1000 ease-out" style="width:0%"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── VIOLATION REPORT ── -->
+      <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+
+        <!-- Report Header -->
+        <div class="px-5 pt-4 pb-3 border-b border-gray-200">
+          <h2 class="text-sm font-bold text-gray-900">Violation Report</h2>
+          <p class="text-xs text-gray-400 mt-0.5">SLA violations across all messaging threads</p>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="bg-white border-b border-gray-200 px-5 py-3 flex items-center gap-3 flex-wrap">
+          <!-- Date From -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs text-gray-500">From</span>
+            <input type="date" id="filterFrom" value="2026-03-20"
+              class="text-xs border border-gray-200 rounded-lg px-2.5 h-9 text-gray-700 focus:outline-none focus:border-gray-400 bg-white" />
+          </div>
+          <!-- Date To -->
+          <div class="flex items-center gap-1.5">
+            <span class="text-xs text-gray-500">To</span>
+            <input type="date" id="filterTo" value="2026-03-23"
+              class="text-xs border border-gray-200 rounded-lg px-2.5 h-9 text-gray-700 focus:outline-none focus:border-gray-400 bg-white" />
+          </div>
+          <!-- Agent -->
+          <select id="filterAgent"
+            class="text-xs border border-gray-200 rounded-lg px-2.5 h-9 text-gray-600 focus:outline-none focus:border-gray-400 bg-white">
+            <option value="">All agents</option>
+            <option value="Advisor 2">Advisor 2</option>
+            <option value="Alex">Alex</option>
+            <option value="Advisor 3">Advisor 3</option>
+            <option value="Kai">Kai</option>
+          </select>
+          <!-- Apply -->
+          <button onclick="applyFilters()" class="bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg hover:bg-gray-800 transition-colors">Apply Filters</button>
+          <!-- Count -->
+          <span id="filterCount" class="ml-auto text-xs text-gray-400">Showing 5 of 8 violations</span>
+        </div>
+
+        <!-- Data View -->
+        <div id="dataView">
+          <table class="w-full" id="violationTable">
+            <thead class="sticky top-0 bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">Member Name</th>
+                <th class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">Violation Date/Time</th>
+                <th class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">Time Unattended</th>
+                <th class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">Assigned Agent</th>
+                <th class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider px-5 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody id="violationBody"></tbody>
+          </table>
+
+          <!-- Pagination -->
+          <div id="pagination" class="flex items-center justify-between px-5 py-3 border-t border-gray-200">
+            <span id="paginationText" class="text-xs text-gray-500">Showing 1-5 of 8 violations</span>
+            <div class="flex items-center gap-2">
+              <button id="btnPrev" onclick="prevPage()" class="text-xs px-3 py-1.5 rounded border border-gray-200 text-gray-500 opacity-50 cursor-not-allowed" disabled>Previous</button>
+              <button id="btnNext" onclick="nextPage()" class="text-xs px-3 py-1.5 rounded border border-gray-200 bg-gray-900 text-white hover:bg-gray-800 transition-colors">Next</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden flex flex-col items-center justify-center py-16 text-center">
+          <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <p class="text-sm font-medium text-gray-400">No violations in this period</p>
+          <p class="text-xs text-gray-300 mt-1">All threads were responded to within SLA</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden flex flex-col items-center justify-center py-16 text-center">
+          <svg class="w-12 h-12 text-red-200 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 3h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+          <p class="text-sm font-medium text-gray-400">Unable to load violation data</p>
+          <button onclick="switchView('data')" class="mt-3 text-xs text-blue-600 hover:underline">Retry</button>
+        </div>
+
+      </div><!-- /Violation Report -->
+
+      <!-- ── DEMO CONTROLS ── -->
+      <div class="mt-6 flex items-center justify-center gap-2 pb-6">
+        <span class="text-[10px] text-gray-300 uppercase tracking-wider font-medium mr-2">Demo</span>
+        <button onclick="switchView('data')" id="demoData"
+          class="text-[10px] px-3 py-1.5 rounded-full border transition-colors bg-gray-900 text-white border-gray-900">Data view</button>
+        <button onclick="switchView('empty')" id="demoEmpty"
+          class="text-[10px] px-3 py-1.5 rounded-full border transition-colors bg-white text-gray-500 border-gray-200 hover:border-gray-400">Empty state</button>
+        <button onclick="switchView('error')" id="demoError"
+          class="text-[10px] px-3 py-1.5 rounded-full border transition-colors bg-white text-gray-500 border-gray-200 hover:border-gray-400">Error state</button>
+      </div>
+
+    </div>
+  </div><!-- /Content Area -->
+
+</div><!-- /Root -->
+
+<script>
+  // ── VIOLATION DATA ──
+  const violations = [
+    { id: 1, name: 'Member A household', initials: 'MA', bgColor: 'bg-rose-100', textColor: 'text-rose-700', trip: 'Bali Honeymoon', date: '2026-03-23', dateLabel: 'Mar 23, 2026 10:15 AM', duration: '45 min 12 sec', severity: 'red', agent: 'Advisor 2', status: 'resolved' },
+    { id: 2, name: 'Member B', initials: 'MB', bgColor: 'bg-blue-100', textColor: 'text-blue-700', trip: 'Tokyo Spring Trip', date: '2026-03-23', dateLabel: 'Mar 23, 2026 9:42 AM', duration: '33 min 41 sec', severity: 'red', agent: 'Advisor 1', status: 'active' },
+    { id: 3, name: 'Member C', initials: 'MC', bgColor: 'bg-amber-100', textColor: 'text-amber-700', trip: 'Amalfi Coast Getaway', date: '2026-03-22', dateLabel: 'Mar 22, 2026 3:30 PM', duration: '28 min 05 sec', severity: 'yellow', agent: 'Advisor 2', status: 'resolved' },
+    { id: 4, name: 'Member E', initials: 'ME', bgColor: 'bg-emerald-100', textColor: 'text-emerald-700', trip: 'Maldives Anniversary', date: '2026-03-22', dateLabel: 'Mar 22, 2026 11:20 AM', duration: '31 min 50 sec', severity: 'red', agent: 'Advisor 3', status: 'resolved' },
+    { id: 5, name: 'Member D', initials: 'MD', bgColor: 'bg-purple-100', textColor: 'text-purple-700', trip: 'Swiss Alps Adventure', date: '2026-03-21', dateLabel: 'Mar 21, 2026 4:45 PM', duration: '22 min 30 sec', severity: 'yellow', agent: 'Advisor 4', status: 'resolved' },
+    { id: 6, name: 'Member K', initials: 'MK', bgColor: 'bg-pink-100', textColor: 'text-pink-700', trip: 'Iceland Northern Lights', date: '2026-03-21', dateLabel: 'Mar 21, 2026 2:10 PM', duration: '35 min 22 sec', severity: 'red', agent: 'Advisor 1', status: 'resolved' },
+    { id: 7, name: 'Member J', initials: 'MJ', bgColor: 'bg-indigo-100', textColor: 'text-indigo-700', trip: 'Patagonia Trek', date: '2026-03-20', dateLabel: 'Mar 20, 2026 9:05 AM', duration: '18 min 44 sec', severity: 'yellow', agent: 'Advisor 2', status: 'resolved' },
+    { id: 8, name: 'Member I', initials: 'MI', bgColor: 'bg-teal-100', textColor: 'text-teal-700', trip: 'Kyoto Cultural Tour', date: '2026-03-20', dateLabel: 'Mar 20, 2026 8:30 AM', duration: '42 min 15 sec', severity: 'red', agent: 'Advisor 3', status: 'resolved' },
+  ];
+
+  const PAGE_SIZE = 5;
+  let currentPage = 1;
+  let filteredData = [...violations];
+
+  // ── RENDER TABLE ──
+  function renderTable() {
+    const tbody = document.getElementById('violationBody');
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const end = Math.min(start + PAGE_SIZE, filteredData.length);
+    const pageData = filteredData.slice(start, end);
+
+    tbody.innerHTML = pageData.map(v => {
+      const severityBadgeBg = v.severity === 'red' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700';
+      const statusBadge = v.status === 'resolved'
+        ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-100 text-green-700">Resolved</span>'
+        : '<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700">Active</span>';
+
+      return `
+        <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors bg-white">
+          <td class="px-5 py-3.5">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-full ${v.bgColor} flex items-center justify-center text-xs font-bold ${v.textColor} shrink-0">${v.initials}</div>
+              <div>
+                <p class="text-sm font-medium text-gray-700">${v.name}</p>
+                <p class="text-[10px] text-gray-400 mt-0.5">${v.trip}</p>
+              </div>
+            </div>
+          </td>
+          <td class="px-5 py-3.5 text-sm text-gray-700">${v.dateLabel}</td>
+          <td class="px-5 py-3.5">
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-gray-700">${v.duration}</span>
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${severityBadgeBg}">${v.severity === 'red' ? 'Red' : 'Yellow'}</span>
+            </div>
+          </td>
+          <td class="px-5 py-3.5">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">${v.agent}</span>
+          </td>
+          <td class="px-5 py-3.5">${statusBadge}</td>
+        </tr>`;
+    }).join('');
+
+    // Update pagination text
+    document.getElementById('paginationText').textContent = `Showing ${start + 1}-${end} of ${filteredData.length} violations`;
+    document.getElementById('filterCount').textContent = `Showing ${end - start} of ${filteredData.length} violations`;
+
+    // Update button states
+    const btnPrev = document.getElementById('btnPrev');
+    const btnNext = document.getElementById('btnNext');
+    const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+
+    if (currentPage <= 1) {
+      btnPrev.disabled = true;
+      btnPrev.className = 'text-xs px-3 py-1.5 rounded border border-gray-200 text-gray-500 opacity-50 cursor-not-allowed';
+    } else {
+      btnPrev.disabled = false;
+      btnPrev.className = 'text-xs px-3 py-1.5 rounded border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer';
+    }
+
+    if (currentPage >= totalPages) {
+      btnNext.disabled = true;
+      btnNext.className = 'text-xs px-3 py-1.5 rounded border border-gray-200 text-gray-500 opacity-50 cursor-not-allowed';
+    } else {
+      btnNext.disabled = false;
+      btnNext.className = 'text-xs px-3 py-1.5 rounded border border-gray-200 bg-gray-900 text-white hover:bg-gray-800 transition-colors cursor-pointer';
+    }
+  }
+
+  // ── PAGINATION ──
+  function nextPage() {
+    const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderTable();
+    }
+  }
+
+  function prevPage() {
+    if (currentPage > 1) {
+      currentPage--;
+      renderTable();
+    }
+  }
+
+  // ── FILTERS ──
+  function applyFilters() {
+    const from = document.getElementById('filterFrom').value;
+    const to = document.getElementById('filterTo').value;
+    const agent = document.getElementById('filterAgent').value;
+
+    filteredData = violations.filter(v => {
+      const matchDate = (!from || v.date >= from) && (!to || v.date <= to);
+      const matchAgent = !agent || v.agent === agent;
+      return matchDate && matchAgent;
+    });
+
+    currentPage = 1;
+
+    if (filteredData.length === 0) {
+      switchView('empty');
+    } else {
+      switchView('data');
+      renderTable();
+    }
+  }
+
+  // ── VIEW SWITCHING ──
+  function switchView(view) {
+    const dataView = document.getElementById('dataView');
+    const emptyState = document.getElementById('emptyState');
+    const errorState = document.getElementById('errorState');
+
+    dataView.classList.add('hidden');
+    emptyState.classList.add('hidden');
+    errorState.classList.add('hidden');
+
+    // Reset demo button styles
+    document.getElementById('demoData').className = 'text-[10px] px-3 py-1.5 rounded-full border transition-colors bg-white text-gray-500 border-gray-200 hover:border-gray-400';
+    document.getElementById('demoEmpty').className = 'text-[10px] px-3 py-1.5 rounded-full border transition-colors bg-white text-gray-500 border-gray-200 hover:border-gray-400';
+    document.getElementById('demoError').className = 'text-[10px] px-3 py-1.5 rounded-full border transition-colors bg-white text-gray-500 border-gray-200 hover:border-gray-400';
+
+    if (view === 'data') {
+      dataView.classList.remove('hidden');
+      document.getElementById('demoData').className = 'text-[10px] px-3 py-1.5 rounded-full border transition-colors bg-gray-900 text-white border-gray-900';
+      if (filteredData.length === 0) {
+        filteredData = [...violations];
+        currentPage = 1;
+      }
+      renderTable();
+    } else if (view === 'empty') {
+      emptyState.classList.remove('hidden');
+      document.getElementById('demoEmpty').className = 'text-[10px] px-3 py-1.5 rounded-full border transition-colors bg-gray-900 text-white border-gray-900';
+    } else if (view === 'error') {
+      errorState.classList.remove('hidden');
+      document.getElementById('demoError').className = 'text-[10px] px-3 py-1.5 rounded-full border transition-colors bg-gray-900 text-white border-gray-900';
+    }
+  }
+
+  // ── KPI COUNTER ANIMATION ──
+  function animateCounter(elementId, target, suffix) {
+    suffix = suffix || '';
+    const el = document.getElementById(elementId);
+    const duration = 1000;
+    const startTime = performance.now();
+
+    function tick(now) {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(eased * target);
+      el.textContent = current + suffix;
+      if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function animateKPIs() {
+    animateCounter('kpiWithinSla', 42);
+    animateCounter('kpiYellow', 7);
+    animateCounter('kpiRed', 3);
+    animateCounter('kpiCompliance', 87, '%');
+    // Animate compliance bar
+    setTimeout(() => {
+      document.getElementById('complianceBar').style.width = '87%';
+    }, 100);
+  }
+
+  // ── REFRESH ──
+  function refreshDashboard() {
+    const icon = document.getElementById('refreshIcon');
+    const text = document.getElementById('refreshText');
+    icon.style.transform = 'rotate(360deg)';
+    text.textContent = 'Refreshing...';
+
+    setTimeout(() => {
+      icon.style.transform = 'rotate(0deg)';
+      text.textContent = 'Last refreshed: just now';
+      // Re-animate KPIs
+      animateKPIs();
+    }, 800);
+  }
+
+  // ── INIT ──
+  function init() {
+    renderTable();
+    animateKPIs();
+  }
+
+  init();
+</script>
+
+</body>
+</html>

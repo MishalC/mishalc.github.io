@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent · Thread — Agent mode</title>
+  <link rel="stylesheet" href="../_shared/fonts.css">
+  <link rel="stylesheet" href="tailwind.css">
+  <link rel="stylesheet" href="agent.css">
+
+  <script src="theme.js"></script>
+  <script src="data.js"></script>
+  <script>window.CURRENT_PAGE = 'agent-thread'; window.CURRENT_APP_TAB = 'agent';</script>
+  <script src="nav.js"></script>
+  <script src="agent.js"></script>
+  <script src="topnav.js"></script>
+</head>
+
+<body class="bg-slate-950 text-slate-300 font-sans min-h-screen antialiased">
+  <a href="/prototypes/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:8px 12px;border-radius:999px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px/1.3 'Hanken Grotesk',system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #0006">Prototype by Mishal Chowdhury · names and data replaced · back to portfolio</a>
+
+  <div id="nav-root"></div>
+
+  <main class="ml-0 lg:ml-[260px] min-h-screen">
+    <div class="max-w-[1320px] mx-auto px-6 py-8 pt-14 lg:pt-8">
+
+      <!-- Title -->
+      <div class="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-semibold text-slate-100 tracking-tight">Agent · Thread</h2>
+          <p class="text-sm text-slate-500 mt-1">The hotel-search thread workspace, with the hero flow as an interactive stepper. <span class="font-mono text-[11px] text-indigo-500">E1 · E2 · E3 · E4</span></p>
+        </div>
+        <button onclick="Agent.openCmdk()" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400 hover:border-indigo-500 hover:text-slate-200 transition-colors">
+          <span class="kbd">⌘K</span> command palette
+        </button>
+      </div>
+
+      <!-- Hero-flow stepper -->
+      <div class="bg-slate-900 border border-indigo-500/40 rounded-lg p-4 mb-4">
+        <div class="flex items-center justify-between gap-4 mb-3">
+          <div class="eyebrow">Hero flow — the 90-second moment</div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="goStep(currentStep-1)" class="px-2.5 py-1 rounded-md bg-slate-800 text-xs text-slate-300 hover:bg-slate-700 transition-colors">← Back</button>
+            <span id="step-counter" class="font-mono text-xs text-slate-400 w-16 text-center"></span>
+            <button onclick="goStep(currentStep+1)" class="px-2.5 py-1 rounded-md bg-indigo-500 text-xs text-white font-medium hover:bg-indigo-600 transition-colors">Next →</button>
+            <button id="play-btn" onclick="togglePlay()" class="px-2.5 py-1 rounded-md bg-slate-800 text-xs text-slate-300 hover:bg-slate-700 transition-colors ml-1">▶ Play</button>
+            <button onclick="goStep(1)" class="px-2.5 py-1 rounded-md bg-slate-800 text-xs text-slate-400 hover:bg-slate-700 transition-colors">↺</button>
+          </div>
+        </div>
+        <div id="step-dots" class="flex items-center gap-2 mb-3"></div>
+        <div class="flex items-start gap-3">
+          <span id="step-title" class="text-sm font-semibold text-slate-100 whitespace-nowrap"></span>
+          <span class="text-slate-700">·</span>
+          <p id="step-caption" class="text-xs text-slate-400 leading-relaxed flex-1"></p>
+          <span id="step-stories" class="flex gap-1 flex-shrink-0"></span>
+        </div>
+      </div>
+
+      <!-- Pause banner -->
+      <div id="pause-banner" class="hidden mb-4 px-4 py-2.5 rounded-lg bg-amber-500/10 border border-amber-500/40 text-xs text-amber-300 flex items-center gap-3">
+        <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+        <span class="flex-1">Agent paused on this thread — manual mode. The advisor handles remaining work; the AI will not iterate further.</span>
+        <button onclick="togglePause()" class="px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-200 hover:bg-amber-500/30 transition-colors">Resume</button>
+      </div>
+
+      <!-- 3-pane thread workspace -->
+      <div class="flex gap-4">
+
+        <!-- Left rail: threads in this project -->
+        <div class="w-[208px] flex-shrink-0 bg-slate-900 border border-slate-800 rounded-lg flex flex-col" style="height:608px;">
+          <div class="px-3 py-2.5 border-b border-slate-800 flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-200">Family A — Tokyo</span>
+            <span class="font-mono text-[10px] text-slate-500">E1-S4</span>
+          </div>
+          <div id="thread-rail" class="flex-1 overflow-y-auto py-2"></div>
+          <div class="p-2.5 border-t border-slate-800">
+            <a href="agent-projects.html" class="text-[11px] text-slate-500 hover:text-slate-300">← All projects</a>
+          </div>
+        </div>
+
+        <!-- Center: the Thread -->
+        <div class="flex-1 bg-slate-900 border border-slate-800 rounded-lg flex flex-col min-w-0" style="height:608px;">
+          <!-- Thread header -->
+          <div class="px-5 py-3 border-b border-slate-800 flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-semibold text-slate-100 truncate">find a suite at Aman for these dates</div>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="badge badge-assist">hotel-search</span>
+                <span class="text-[11px] text-slate-500">anchored to Family A — Tokyo</span>
+              </div>
+            </div>
+            <button onclick="togglePause()" id="pause-btn" class="px-2.5 py-1.5 rounded-md bg-slate-800 text-xs text-slate-300 hover:bg-slate-700 transition-colors">Pause Agent</button>
+            <button class="px-2.5 py-1.5 rounded-md bg-slate-800 text-xs text-slate-400 hover:bg-slate-700 transition-colors">Archive</button>
+          </div>
+          <!-- Messages -->
+          <div id="thread-messages" class="flex-1 overflow-y-auto px-5 py-4"></div>
+          <!-- Composer -->
+          <div class="px-4 py-3 border-t border-slate-800">
+            <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2">
+              <input id="composer" type="text" placeholder="Message the agent…" disabled
+                     class="flex-1 bg-transparent text-sm text-slate-300 placeholder-slate-600 outline-none">
+              <span class="thinking" id="composer-thinking" style="display:none"><span></span><span></span><span></span></span>
+              <button class="px-3 py-1 rounded-md bg-indigo-500 text-xs text-white font-medium">Send</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right rail: Trip Context + Tasks + Memory -->
+        <div class="w-[288px] flex-shrink-0 space-y-4">
+
+          <!-- Trip Context -->
+          <div class="bg-slate-900 border border-slate-800 rounded-lg">
+            <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-200">Trip Context</span>
+              <span class="font-mono text-[10px] text-slate-500">E2-S1</span>
+            </div>
+            <div id="ctx-panel" class="p-3 space-y-3"></div>
+          </div>
+
+          <!-- Tasks -->
+          <div class="bg-slate-900 border border-slate-800 rounded-lg">
+            <div class="px-4 py-2.5 border-b border-slate-800 flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-200">Tasks</span>
+              <span id="tasks-count" class="font-mono text-[10px] text-slate-500"></span>
+            </div>
+            <div id="tasks-panel" class="p-3 space-y-2"></div>
+          </div>
+
+          <!-- Memory -->
+          <span class="block bg-slate-900 border border-slate-800 rounded-lg px-4 py-3 hover:border-indigo-500 transition-colors">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-200">Memory Panel</span>
+              <span class="font-mono text-[10px] text-slate-500">E5</span>
+            </div>
+            <div class="text-[11px] text-slate-500 mt-1">4 operator-curated client facts →</div>
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    /* ---- state ---- */
+    let currentStep = 1;
+    let playTimer = null;
+    const TOTAL = MOCK.heroSteps.length;
+
+    const params = new URLSearchParams(location.search);
+    const startStep = parseInt(params.get('step'), 10);
+    if (startStep >= 1 && startStep <= TOTAL) currentStep = startStep;
+
+    /* ---- message builders ---- */
+    function avatar(kind) {
+      const letter = kind === 'ai' ? 'AI' : kind === 'advisor' ? 'P' : '·';
+      return `<div class="msg-avatar ${kind}">${letter}</div>`;
+    }
+    function msgAdvisor(text) {
+      return `<div class="msg advisor reveal">${avatar('advisor')}
+        <div class="msg-body"><div class="msg-name">Lead advisor · advisor</div>
+        <div class="msg-bubble">${Theme.escapeHtml(text)}</div></div></div>`;
+    }
+    function msgAI(bodyHtml, label) {
+      return `<div class="msg ai reveal">${avatar('ai')}
+        <div class="msg-body"><div class="msg-name">Assistant${label ? ' · ' + label : ''}</div>
+        ${bodyHtml}</div></div>`;
+    }
+    function msgSystem(text) {
+      return `<div class="msg-system-line reveal"><span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>${text}</div>`;
+    }
+    function msgEvent(kind, text) {
+      return `<div class="reveal" style="margin:0 0 14px 38px;"><span class="msg-event ${kind}">
+        ${kind === 'task' ? '◆' : '✦'} ${text}</span></div>`;
+    }
+
+    /* ---- content blocks ---- */
+    function assumptionsBlock() {
+      const chips = [
+        ['Dates', 'Sep 12–19'],
+        ['Occupancy', '2 adults + 2 children'],
+        ['Category', 'Suite'],
+        ['Budget', 'splurge approved (Client facts)'],
+      ];
+      return `<div class="msg-bubble">Searching now. I'm working from these assumptions — edit any chip to refine.</div>
+        <div class="flex flex-wrap gap-2 mt-2">
+          ${chips.map(c => `<span class="assumption-chip" onclick="noteEdit()"><span>${c[0]}: <span class="text-slate-200">${c[1]}</span></span><span class="edit">✎</span></span>`).join('')}
+        </div>
+        <div class="text-[11px] text-slate-600 mt-1.5">E2-S4 — editing a chip aborts the in-flight turn and re-fires it with the new value.</div>`;
+    }
+    function noteEdit() {
+      const el = document.getElementById('edit-note');
+      if (el) { el.classList.remove('hidden'); setTimeout(() => el.classList.add('hidden'), 2600); }
+    }
+
+    function recCard(rec, step) {
+      const added = (rec.id === 'rec-aman' && step >= 7);
+      const factual = (rec.id === 'rec-janu' && step >= 6) ? MOCK.findings.find(f => f.id === 'f-factual') : null;
+      return `<div class="rec-card ${added ? 'selected' : ''}">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-slate-100">${rec.name}</span>
+              ${rec.lead ? '<span class="badge" style="color:#fdba74;background:#6366f120;">named by advisor</span>' : ''}
+            </div>
+            <div class="text-[11px] text-slate-500 mt-0.5">${rec.room} · ${rec.area}</div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <div class="text-sm font-semibold text-slate-200">${rec.rate}</div>
+            <div class="text-[10px] text-slate-500">${rec.total}</div>
+          </div>
+        </div>
+        <p class="text-xs text-slate-400 leading-relaxed mt-2">${Theme.escapeHtml(rec.why)}</p>
+        <div class="flex items-center gap-2 mt-2.5 flex-wrap">
+          <span class="source-chip" onclick="toggleSource('${rec.id}')" title="${Theme.escapeHtml(rec.source.detail)}">◈ ${rec.source.label}</span>
+          ${factual ? `<span class="helper-chip helper-chip--factual" onclick="toggleFinding('f-factual')"><span class="dot"></span>factual-check: ${factual.summary}</span>` : ''}
+          <div class="ml-auto">
+            ${added
+              ? '<span class="text-[11px] text-emerald-400 font-medium">✓ Added to trip</span>'
+              : `<button onclick="goStep(7)" class="px-2.5 py-1 rounded-md bg-slate-800 text-[11px] text-slate-200 hover:bg-indigo-500 hover:text-white transition-colors">Add to Trip</button>`}
+          </div>
+        </div>
+        <div id="src-${rec.id}" class="hidden mt-2 text-[11px] text-emerald-300/80 bg-emerald-500/5 border border-emerald-500/20 rounded-md p-2 font-mono">${Theme.escapeHtml(rec.source.detail)}</div>
+        ${factual ? `<div id="find-f-factual" class="hidden mt-2 text-[11px] text-amber-300/90 bg-amber-500/5 border border-amber-500/20 rounded-md p-2">${Theme.escapeHtml(factual.detail)}</div>` : ''}
+      </div>`;
+    }
+
+    function recsBlock(step) {
+      const cards = MOCK.recs.map(r => recCard(r, step)).join('');
+      const intent = MOCK.findings.find(f => f.id === 'f-intent');
+      const intentChip = step >= 6
+        ? `<div class="mt-3">
+             <span class="helper-chip helper-chip--intent" onclick="toggleFinding('f-intent')"><span class="dot"></span>intent-match-verifier: ${intent.summary}</span>
+             <div id="find-f-intent" class="hidden mt-2 text-[11px] text-blue-300/90 bg-blue-500/5 border border-blue-500/20 rounded-md p-2">${Theme.escapeHtml(intent.detail)}</div>
+             <div class="text-[11px] text-slate-600 mt-1.5">E3-S4 — findings are coalesced: one chip per finding kind, max two on an artifact.</div>
+           </div>`
+        : '';
+      return `<div class="msg-bubble">Three grounded options for the family. Each cites the destination record that backed it.</div>
+        <div class="space-y-2.5 mt-2">${cards}</div>${intentChip}`;
+    }
+
+    function proposedActionsBlock() {
+      return `<div class="msg-bubble">The Aman Tokyo suite is on the trip. Next actions —</div>
+        <div class="flex flex-wrap gap-2 mt-2">
+          <button class="px-3 py-1.5 rounded-md bg-slate-800 text-xs text-slate-300 hover:bg-slate-700 transition-colors">Book via partner portal</button>
+          <button onclick="goStep(9)" class="px-3 py-1.5 rounded-md bg-indigo-500 text-xs text-white font-medium hover:bg-indigo-600 transition-colors">Draft inquiry to Aman ✦</button>
+          <button class="px-3 py-1.5 rounded-md bg-slate-800 text-xs text-slate-300 hover:bg-slate-700 transition-colors">Create manual task</button>
+        </div>
+        <div class="text-[11px] text-slate-600 mt-1.5">E4-S2 — Aman Tokyo is an offline vendor, so a messaging task is the proposed path.</div>`;
+    }
+
+    function draftBlock() {
+      const sent = currentStep >= 9 && draftSent;
+      return `<div class="msg-bubble">Drafted a supplier inquiry. This is a <span class="text-indigo-400 font-medium">messaging task</span> — review and send.</div>
+        <div class="mt-2 bg-slate-950 border border-slate-700 rounded-lg p-3">
+          <div class="text-[10px] font-mono uppercase tracking-wider text-slate-500 mb-1.5">messaging task · Draft inquiry to Aman Tokyo</div>
+          <p class="text-xs text-slate-300 leading-relaxed">Dear Aman Tokyo team — we're planning a 7-night stay for a returning Aman family (Sep 12–19, 2026), 2 adults and 2 children (8, 11). We'd like to confirm a Pool Suite, and ask whether a connecting suite or adjacent room can be held for the children. Anniversary trip — any in-suite touches would be welcome.</p>
+          <div class="flex items-center gap-2 mt-2.5">
+            ${sent
+              ? '<span class="text-[11px] text-emerald-400 font-medium">✓ Sent to Aman Tokyo · messaging task closed</span>'
+              : `<button onclick="sendDraft()" class="px-3 py-1 rounded-md bg-indigo-500 text-xs text-white font-medium hover:bg-indigo-600 transition-colors">Send with one click</button>
+                 <button class="px-3 py-1 rounded-md bg-slate-800 text-xs text-slate-300">Edit</button>`}
+          </div>
+        </div>`;
+    }
+    let draftSent = false;
+    function sendDraft() { draftSent = true; renderThread(); }
+
+    function taskCard(id) {
+      const t = MOCK.tasks.find(x => x.id === id);
+      return `<div class="task-card ${t.kind}">
+        <div class="flex items-center gap-2">
+          <span class="badge badge-${t.kind}">${t.kind} task</span>
+          <span class="badge badge-${t.tier}">${t.tier}</span>
+          <span class="ml-auto text-[10px] font-mono text-slate-600">${t.taskType}</span>
+        </div>
+        <div class="text-xs text-slate-200 mt-1.5 leading-snug">${Theme.escapeHtml(t.title)}</div>
+        <div class="text-[10px] text-slate-500 mt-1">origin: agent-mode · via <span class="font-mono">${t.via}</span></div>
+      </div>`;
+    }
+
+    /* ---- renderers ---- */
+    function renderThread() {
+      const s = currentStep;
+      let h = '';
+      h += msgSystem('Thread opened · skill <span class="font-mono text-slate-400">hotel-search</span> · via ⌘K from Family A — Tokyo');
+      h += `<div class="ctx-card reveal" style="margin:0 0 16px 38px;">
+        <div class="text-[10px] font-mono uppercase tracking-wider text-slate-500 mb-1">context pre-loaded</div>
+        <div class="text-[11px] text-slate-400">Trip context · Client facts (4) · Team insights (2) — see the Trip Context panel.</div></div>`;
+
+      if (s >= 2) h += msgAdvisor('find a suite at Aman for these dates');
+      if (s >= 3) h += msgAI(assumptionsBlock());
+      if (s >= 4) {
+        h += msgSystem('exclusion-check ran <span class="text-slate-400">before</span> any recommendation was emitted (sub-agent, pre-emit)');
+        const ex = MOCK.findings.find(f => f.id === 'f-exclusion');
+        h += `<div class="reveal" style="margin:0 0 14px 38px;"><span class="helper-chip helper-chip--pass" onclick="toggleFinding('f-exclusion')"><span class="dot"></span>exclusion-check ✓ ${ex.summary}</span>
+          <div id="find-f-exclusion" class="hidden mt-2 text-[11px] text-emerald-300/90 bg-emerald-500/5 border border-emerald-500/20 rounded-md p-2" style="max-width:520px;">${Theme.escapeHtml(ex.detail)}</div></div>`;
+      }
+      if (s >= 5) h += msgAI(recsBlock(s));
+      if (s >= 6) h += msgAI(`<div class="msg-bubble">intent-match-verifier flagged that connecting-suite availability for the children isn't covered by curated sources. I've opened a <span class="text-amber-400 font-medium">human task</span> to confirm — deep-linked to this thread (<span class="font-mono text-[11px]">human task</span>).</div>`);
+      if (s >= 7) {
+        h += msgEvent('task', 'Task created — Book Aman Tokyo · Pool Suite · origin: agent-mode');
+        h += msgEvent('trip', 'Itinerary component added to Family A — Tokyo');
+      }
+      if (s >= 8) h += msgAI(proposedActionsBlock());
+      if (s >= 9) {
+        h += msgEvent('task', 'messaging task created — Draft inquiry to Aman Tokyo');
+        h += msgAI(draftBlock());
+      }
+
+      h += `<div id="edit-note" class="hidden msg-system-line text-indigo-400">⟳ assumption edited — turn aborted and re-fired with the new value (mock)</div>`;
+      const box = document.getElementById('thread-messages');
+      box.innerHTML = h;
+      box.scrollTop = box.scrollHeight;
+
+      // composer / thinking state
+      const thinking = (s >= 2 && s <= 4);
+      document.getElementById('composer-thinking').style.display = thinking ? 'inline-flex' : 'none';
+      document.getElementById('composer').placeholder = s >= 9 ? 'Messaging task in composer — review the draft above' : 'Message the agent…';
+    }
+
+    function renderTasks() {
+      const s = currentStep, ids = [];
+      if (s >= 7) ids.push('t-book');
+      if (s >= 9) ids.push('t-msg');
+      if (s >= 6) ids.push('t-human');
+      document.getElementById('tasks-count').textContent = ids.length ? ids.length + ' on trip' : '';
+      document.getElementById('tasks-panel').innerHTML = ids.length
+        ? ids.map(taskCard).join('')
+        : '<div class="text-[11px] text-slate-600 py-2 text-center">No tasks yet — Agent Mode creates them as the flow runs.</div>';
+    }
+
+    function renderContext() {
+      const c = MOCK.context;
+      const block = (label, items, story) => `
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-indigo-500">${label}</span>
+            ${story ? `<span class="font-mono text-[9px] text-slate-600">${story}</span>` : ''}
+          </div>
+          <ul class="space-y-0.5">${items.map(i => `<li class="text-[11px] text-slate-400 leading-snug">${Theme.escapeHtml(i)}</li>`).join('')}</ul>
+        </div>`;
+      document.getElementById('ctx-panel').innerHTML =
+        block('Trip context', c.tripContext) +
+        block('Client facts', c.clientFacts, 'E5') +
+        block('Team insights', c.orgInsights);
+    }
+
+    function renderRail() {
+      document.getElementById('thread-rail').innerHTML = MOCK.threads.map(t => {
+        const dot = t.status === 'open' ? '#34d399' : t.status === 'paused' ? '#fbbf24' : '#64748b';
+        return `<div class="px-3 py-2 border-l-2 ${t.active ? 'border-indigo-500 bg-slate-800/50' : 'border-transparent hover:bg-slate-800/30'}">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full flex-shrink-0" style="background:${dot}"></span>
+            <span class="text-[12px] ${t.active ? 'text-slate-200' : 'text-slate-400'} leading-snug">${Theme.escapeHtml(t.title)}</span>
+          </div>
+          <div class="text-[10px] text-slate-600 mt-0.5 pl-3.5">${t.skill} · ${t.msgs} msgs · ${t.status}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderStepper() {
+      const step = MOCK.heroSteps[currentStep - 1];
+      document.getElementById('step-counter').textContent = 'Step ' + currentStep + ' / ' + TOTAL;
+      document.getElementById('step-title').textContent = step.title;
+      document.getElementById('step-caption').textContent = step.caption;
+      document.getElementById('step-stories').innerHTML = step.stories
+        .map(s => `<span class="badge badge-assist">${s}</span>`).join('');
+      document.getElementById('step-dots').innerHTML = MOCK.heroSteps.map(hs => {
+        const cls = hs.n < currentStep ? 'done' : hs.n === currentStep ? 'active' : '';
+        return `<span class="step-dot ${cls}" onclick="goStep(${hs.n})" title="${Theme.escapeHtml(hs.title)}" style="cursor:pointer"></span>`;
+      }).join('<span class="flex-1 h-px bg-slate-800"></span>');
+    }
+
+    function renderAll() {
+      renderStepper(); renderThread(); renderTasks();
+    }
+
+    /* ---- interactions ---- */
+    function goStep(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      currentStep = n;
+      if (n < 9) draftSent = false;
+      renderAll();
+    }
+    function toggleSource(id) { document.getElementById('src-' + id)?.classList.toggle('hidden'); }
+    function toggleFinding(id) { document.getElementById('find-' + id)?.classList.toggle('hidden'); }
+    function togglePause() {
+      const b = document.getElementById('pause-banner');
+      const btn = document.getElementById('pause-btn');
+      b.classList.toggle('hidden');
+      btn.textContent = b.classList.contains('hidden') ? 'Pause Agent' : 'Resume Agent';
+    }
+    function togglePlay() {
+      const btn = document.getElementById('play-btn');
+      if (playTimer) {
+        clearInterval(playTimer); playTimer = null; btn.textContent = '▶ Play';
+      } else {
+        btn.textContent = '❚❚ Pause';
+        playTimer = setInterval(() => {
+          if (currentStep >= TOTAL) { togglePlay(); return; }
+          goStep(currentStep + 1);
+        }, 1900);
+      }
+    }
+
+    /* ---- init ---- */
+    renderRail();
+    renderContext();
+    renderAll();
+  </script>
+
+</body>
+</html>

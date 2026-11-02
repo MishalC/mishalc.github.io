@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../_shared/fonts.css">
+<link rel="stylesheet" href="tailwind.css">
+<title>Trip Details — Use Cases Prototype</title>
+<style>
+* { box-sizing: border-box; }
+body { font-family: 'Hanken Grotesk', sans-serif; background: #0f0f1a; margin: 0; }
+.phone-frame {
+  width: 390px; height: 844px; background: #FAFAF8; border-radius: 40px;
+  overflow: hidden; position: relative; box-shadow: 0 25px 60px rgba(0,0,0,0.4);
+  border: 8px solid #2a2a2a;
+}
+.phone-scroll { overflow-y: auto; height: 100%; scroll-behavior: smooth; }
+.phone-scroll::-webkit-scrollbar { width: 0; }
+.hero-bg {
+  background: linear-gradient(180deg, rgba(40,35,50,0.7) 0%, rgba(60,50,70,0.5) 50%, rgba(80,70,90,0.3) 100%),
+    linear-gradient(135deg, #2c1810 0%, #4a3728 25%, #6b5a4e 50%, #8a7968 75%, #a89888 100%);
+  background-size: cover;
+}
+.status-pill { backdrop-filter: blur(4px); }
+.tab-bar { backdrop-filter: blur(8px); }
+.modal-overlay {
+  background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.modal-overlay.active { opacity: 1; pointer-events: auto; }
+.bottom-sheet {
+  transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.bottom-sheet.active { transform: translateY(0); }
+.modal-content {
+  transform: scale(0.95) translateY(10px); opacity: 0;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+.modal-overlay.active .modal-content { transform: scale(1) translateY(0); opacity: 1; }
+.card-transition { transition: all 0.2s ease; }
+.fade-in { animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.toast {
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 1.7s forwards;
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  z-index: 100;
+}
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+.chip { transition: all 0.15s ease; cursor: pointer; user-select: none; }
+.chip:hover { opacity: 0.85; }
+.chip.selected { background: #1A1A1A !important; color: #fff !important; border-color: #1A1A1A !important; }
+.star { cursor: pointer; transition: transform 0.15s ease; }
+.star:hover { transform: scale(1.15); }
+.thumb-btn { transition: all 0.15s ease; cursor: pointer; }
+.thumb-btn:hover { background: #F0EDE8; }
+.thumb-btn.active-up { background: #E8F5E8 !important; color: #2E7D32 !important; }
+.thumb-btn.active-down { background: #FFF3E0 !important; color: #E65100 !important; }
+.nav-dot { transition: all 0.2s ease; cursor: pointer; }
+.nav-dot:hover { transform: scale(1.1); }
+.nav-dot.active { background: #fff !important; transform: scale(1.15); }
+.insider-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+.insider-content.open { max-height: 200px; }
+/* Tech panels */
+.tech-panel {
+  width: 380px; height: 844px; background: #141425; border: 1px solid #2a2a40;
+  border-radius: 12px; overflow-y: auto; font-family: 'DM Mono', monospace;
+}
+.tech-panel::-webkit-scrollbar { width: 4px; }
+.tech-panel::-webkit-scrollbar-track { background: #141425; }
+.tech-panel::-webkit-scrollbar-thumb { background: #2a2a40; border-radius: 2px; }
+.tech-panel h3 { font-family: 'Hanken Grotesk', sans-serif; }
+.code-block {
+  background: #111122; border: 1px solid #252540; border-radius: 8px;
+  padding: 14px; font-size: 12px; line-height: 1.7; overflow-x: auto;
+  color: #c8d4e4; white-space: pre; tab-size: 2;
+}
+.code-block .key { color: #93ddff; }
+.code-block .str { color: #98f5b8; }
+.code-block .num { color: #fcc93c; }
+.code-block .null { color: #a8b4c8; }
+.code-block .bool { color: #d4a0ff; }
+.code-block .comment { color: #5a6a80; font-style: italic; }
+.method-badge { font-size: 11px; font-weight: 700; letter-spacing: 0.5px; padding: 3px 10px; border-radius: 4px; }
+.method-get { background: #0a5d47; color: #80f0c8; }
+.method-patch { background: #8a4010; color: #fcc93c; }
+.method-post { background: #25466e; color: #93ddff; }
+.endpoint-url { color: #93ddff; font-size: 13px; font-weight: 500; }
+.field-row { display: flex; justify-content: space-between; align-items: baseline; padding: 6px 0; border-bottom: 1px solid #252540; }
+.field-name { color: #93ddff; font-size: 12px; }
+.field-type { color: #a8b4c8; font-size: 11px; }
+.section-divider { border-top: 1px solid #2a2a40; margin: 16px 0; }
+.tag-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.three-col { display: flex; gap: 24px; align-items: flex-start; justify-content: center; }
+@media (max-width: 1300px) {
+  .tech-panel { display: none; }
+  .three-col { gap: 0; }
+}
+/* Endpoint section highlighting */
+.endpoint-section {
+  border-left: 2px solid transparent;
+  padding-left: 8px;
+  margin-left: -10px;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+  border-radius: 4px;
+}
+.endpoint-section.highlight {
+  border-left-color: #fcc93c;
+  background-color: rgba(252, 201, 60, 0.08);
+  animation: panelPulse 2.5s ease-out forwards;
+}
+@keyframes panelPulse {
+  0% { background-color: rgba(252, 201, 60, 0.14); border-left-color: #fcc93c; }
+  70% { background-color: rgba(252, 201, 60, 0.06); border-left-color: #fcc93c; }
+  100% { background-color: transparent; border-left-color: transparent; }
+}
+/* Response section highlighting */
+.response-section {
+  border-left: 2px solid transparent;
+  padding-left: 8px;
+  margin-left: -10px;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+  border-radius: 4px;
+}
+.response-section.highlight {
+  border-left-color: #93ddff;
+  background-color: rgba(147, 221, 255, 0.08);
+  animation: panelPulseBlue 2.5s ease-out forwards;
+}
+@keyframes panelPulseBlue {
+  0% { background-color: rgba(147, 221, 255, 0.14); border-left-color: #93ddff; }
+  70% { background-color: rgba(147, 221, 255, 0.06); border-left-color: #93ddff; }
+  100% { background-color: transparent; border-left-color: transparent; }
+}
+/* Panel glow on status change */
+.tech-panel.panel-glow {
+  animation: panelGlow 1.5s ease-out forwards;
+}
+@keyframes panelGlow {
+  0% { box-shadow: inset 0 0 30px rgba(147, 221, 255, 0.08); }
+  100% { box-shadow: none; }
+}
+</style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start py-4 px-4">
+<a href="/prototypes/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:8px 12px;border-radius:999px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px/1.3 'Hanken Grotesk',system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #0006">Prototype by Mishal Chowdhury · names and data replaced · back to portfolio</a>
+
+<!-- Status Navigation (outside phone) -->
+<div class="mb-3 text-center">
+  <h1 class="text-white text-lg font-semibold mb-2">Trip Details — Use Cases</h1>
+  <div class="flex items-center gap-2 justify-center flex-wrap max-w-[700px]">
+    <button onclick="prevStatus()" class="text-white/60 hover:text-white p-1">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div id="status-nav" class="flex gap-1.5 flex-wrap justify-center"></div>
+    <button onclick="nextStatus()" class="text-white/60 hover:text-white p-1">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  </div>
+  <p id="status-label" class="text-white/40 text-xs mt-1.5"></p>
+</div>
+
+<!-- Layout -->
+<div class="three-col">
+
+<!-- Phone Frame -->
+<div class="phone-frame" id="phone">
+  <div class="phone-scroll" id="phone-scroll">
+    <!-- Status Bar -->
+    <div class="sticky top-0 z-30 flex justify-between items-center px-6 pt-3 pb-1 text-white text-xs font-semibold" style="background:transparent;">
+      <span>4:19</span>
+      <div class="flex items-center gap-1">
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="white"><rect x="0" y="8" width="3" height="4" rx="0.5"/><rect x="4" y="5" width="3" height="7" rx="0.5"/><rect x="8" y="2" width="3" height="10" rx="0.5"/><rect x="12" y="0" width="3" height="12" rx="0.5"/></svg>
+        <svg width="15" height="12" viewBox="0 0 15 12" fill="white"><path d="M7.5 3.5C9.4 3.5 11.1 4.3 12.3 5.5L13.7 4.1C12.1 2.5 9.9 1.5 7.5 1.5S2.9 2.5 1.3 4.1L2.7 5.5C3.9 4.3 5.6 3.5 7.5 3.5zM7.5 6.5C8.6 6.5 9.6 6.9 10.4 7.6L11.8 6.2C10.6 5.1 9.1 4.5 7.5 4.5S4.4 5.1 3.2 6.2L4.6 7.6C5.4 6.9 6.4 6.5 7.5 6.5zM9 10L7.5 12L6 10C6.4 9.6 6.9 9.5 7.5 9.5S8.6 9.6 9 10z"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12" fill="white"><rect x="0" y="1" width="21" height="10" rx="2" fill="none" stroke="white" stroke-width="1"/><rect x="22" y="4" width="2" height="4" rx="0.5"/><rect x="2" y="3" width="17" height="6" rx="1"/></svg>
+      </div>
+    </div>
+
+    <!-- Hero Header -->
+    <div class="hero-bg relative" style="min-height:280px;">
+      <!-- Back + Add member buttons -->
+      <div class="flex justify-between items-center px-4 pt-1 pb-2">
+        <button class="text-white/80 hover:text-white p-1">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <button class="text-white/80 hover:text-white p-1">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+        </button>
+      </div>
+      <!-- Trip info -->
+      <div class="text-center px-6 pt-6 pb-4">
+        <p class="text-white/70 text-sm mb-1">Nov 30 – Dec 9, 2026</p>
+        <h2 class="text-white text-sm font-light mb-0.5">Where Winter Glows</h2>
+        <h1 class="text-white text-2xl font-bold">London & Paris</h1>
+      </div>
+      <!-- Status Badge + Icon Row -->
+      <div class="flex items-center justify-center gap-2 pb-4 px-4">
+        <div class="flex items-center gap-3">
+          <button class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-white/70 hover:bg-white/25">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+          <div id="hero-badge" class="status-pill flex items-center gap-1.5 bg-black/70 text-white text-xs font-medium px-3.5 py-2 rounded-full"></div>
+          <button class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-white/70 hover:bg-white/25">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4-4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </button>
+          <button class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-white/70 hover:bg-white/25">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="18" cy="6" r="1.5" fill="currentColor"/><circle cx="8" cy="12" r="1.5" fill="currentColor"/><circle cx="16" cy="18" r="1.5" fill="currentColor"/></svg>
+          </button>
+          <button class="w-9 h-9 rounded-full bg-white/15 flex items-center justify-center text-white/70 hover:bg-white/25">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar sticky top-0 z-20 bg-warm-50 px-1 pt-1 pb-0">
+      <div class="flex bg-warm-200 rounded-full p-1 mx-3">
+        <button id="tab-details" onclick="switchTab('details')" class="flex-1 py-2.5 text-sm font-medium rounded-full text-center transition-all">Details</button>
+        <button id="tab-chat" onclick="switchTab('chat')" class="flex-1 py-2.5 text-sm font-medium rounded-full text-center transition-all">Concierge Chat</button>
+      </div>
+    </div>
+
+    <!-- Content Area -->
+    <div id="content-area" class="px-0 pb-8">
+      <!-- Dynamically rendered -->
+    </div>
+  </div>
+
+  <!-- Modal Overlays (inside phone frame) -->
+  <div id="modal-suggestion-states" class="modal-overlay absolute inset-0 z-40 flex items-center justify-center px-6" onclick="closeModalOnOverlay(event, 'suggestion-states')">
+    <div class="modal-content bg-white rounded-2xl p-6 w-full max-w-[350px] shadow-xl">
+      <div class="flex justify-between items-start mb-2">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <h3 class="text-lg font-semibold text-gray-900">Suggestion States</h3>
+          </div>
+          <p class="text-sm text-gray-500">Explore the lifecycle of each suggested option</p>
+        </div>
+        <button onclick="closeModal('suggestion-states')" class="text-gray-400 hover:text-gray-600 p-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="space-y-4 mt-4">
+        <div class="flex items-start gap-3">
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-warm-100 text-xs font-medium text-gray-700 whitespace-nowrap mt-0.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+            Recommended
+          </span>
+          <p class="text-sm text-gray-600">This is the state you'll see when a suggested option is ready for you to review.</p>
+        </div>
+        <div class="border-t border-warm-300"></div>
+        <div class="flex items-start gap-3">
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-xs font-medium text-green-700 whitespace-nowrap mt-0.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v1"/><path d="M18 8H6a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2v-8a2 2 0 00-2-2z"/></svg>
+            Selected
+          </span>
+          <p class="text-sm text-gray-600">Once you approve an option with a thumbs up, the concierge will start the booking process for you.</p>
+        </div>
+        <div class="border-t border-warm-300"></div>
+        <div class="flex items-start gap-3">
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-xs font-medium text-indigo-700 whitespace-nowrap mt-0.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Rejected
+          </span>
+          <p class="text-sm text-gray-600">This is what happens when you thumbs down and reject an option.</p>
+        </div>
+        <div class="border-t border-warm-300"></div>
+        <div class="flex items-start gap-3">
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-xs font-medium text-green-700 whitespace-nowrap mt-0.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Booked
+          </span>
+          <p class="text-sm text-gray-600">Once the concierge confirms your booking, your reservation is finalized and all set!</p>
+        </div>
+      </div>
+      <div class="mt-4 bg-warm-100 rounded-xl p-3">
+        <p class="text-xs text-gray-500 text-center">Use the thumbs up/down buttons to change the status of each recommendation.</p>
+      </div>
+      <label class="flex items-center gap-2 mt-4 cursor-pointer">
+        <input type="checkbox" class="w-4 h-4 rounded border-gray-300">
+        <span class="text-sm text-gray-500">Don't show this again</span>
+      </label>
+      <button onclick="closeModal('suggestion-states')" class="w-full mt-4 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-colors">Okay, got it</button>
+    </div>
+  </div>
+
+  <div id="modal-reviewing" class="modal-overlay absolute inset-0 z-40 flex items-center justify-center px-6" onclick="closeModalOnOverlay(event, 'reviewing')">
+    <div class="modal-content bg-white rounded-2xl p-6 w-full max-w-[350px] shadow-xl">
+      <div class="flex justify-between items-start mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">Reviewing Your Suggestions</h3>
+        <button onclick="closeModal('reviewing')" class="text-gray-400 hover:text-gray-600 p-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="space-y-4">
+        <div class="bg-warm-50 rounded-xl p-4">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 rounded-full bg-warm-200 flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/></svg>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-900">Thumbs Up</p>
+              <p class="text-xs text-gray-500">By giving a thumbs up, you mark this option as Selected/Approved. Your concierge can then start booking this option.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 mt-3 justify-center">
+            <span class="px-2.5 py-1 rounded-full bg-warm-200 text-xs font-medium text-gray-600">Recommended</span>
+            <span class="text-gray-400">→</span>
+            <span class="px-2.5 py-1 rounded-full bg-green-50 text-xs font-medium text-green-700">Selected</span>
+          </div>
+        </div>
+        <div class="bg-warm-50 rounded-xl p-4">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="w-10 h-10 rounded-full bg-warm-200 flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A1A1A" stroke-width="2"><path d="M10 15V19a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/></svg>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-gray-900">Thumbs Down</p>
+              <p class="text-xs text-gray-500">If you give a thumbs down, this option will be marked as Rejected. Your concierge will know not to move forward with this option.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 mt-3 justify-center">
+            <span class="px-2.5 py-1 rounded-full bg-warm-200 text-xs font-medium text-gray-600">Recommended</span>
+            <span class="text-gray-400">→</span>
+            <span class="px-2.5 py-1 rounded-full bg-indigo-50 text-xs font-medium text-indigo-700">Rejected</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-start gap-2 mt-4 text-xs text-gray-500">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mt-0.5 shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <p>This action will notify your concierge about your decision.</p>
+      </div>
+      <label class="flex items-center gap-2 mt-4 cursor-pointer">
+        <input type="checkbox" class="w-4 h-4 rounded border-gray-300">
+        <span class="text-sm text-gray-500">Don't show this again</span>
+      </label>
+      <button onclick="closeModal('reviewing')" class="w-full mt-4 py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-colors">Okay, got it</button>
+    </div>
+  </div>
+
+  <div id="modal-request-changes" class="modal-overlay absolute inset-0 z-40 flex items-end" onclick="closeModalOnOverlay(event, 'request-changes')">
+    <div class="bottom-sheet bg-white rounded-t-2xl w-full p-6 shadow-xl" id="request-changes-sheet">
+      <div class="flex justify-center mb-3"><div class="w-10 h-1 bg-gray-300 rounded-full"></div></div>
+      <div class="flex justify-between items-start mb-2">
+        <h3 class="text-lg font-semibold text-gray-900">Request changes</h3>
+        <button onclick="closeModal('request-changes')" class="text-gray-400 hover:text-gray-600 p-1">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <p class="text-sm text-gray-500 mb-4">Let your concierge know what you'd like changed.</p>
+      <textarea class="w-full h-32 border border-warm-300 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-300" placeholder="e.g., Move my reservation to the evening"></textarea>
+      <button onclick="closeModal('request-changes'); showToast('Change request sent'); highlightEndpoint('post'); highlightResponse('response');" class="w-full mt-4 py-3.5 bg-gray-900 text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-colors">Send</button>
+    </div>
+  </div>
+
+  <div id="modal-feedback-planning" class="modal-overlay absolute inset-0 z-40 flex items-end" onclick="closeModalOnOverlay(event, 'feedback-planning')">
+    <div class="bottom-sheet bg-white rounded-t-2xl w-full shadow-xl" id="feedback-planning-sheet" style="max-height:85%;">
+      <div class="overflow-y-auto p-6" style="max-height:calc(85vh - 40px);">
+        <div class="flex justify-between items-start mb-2">
+          <div></div>
+          <button onclick="closeModal('feedback-planning')" class="text-gray-400 hover:text-gray-600 p-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 text-center mb-1">How was your<br>planning experience?</h3>
+        <p class="text-sm text-gray-500 text-center mb-5">We'd love to hear what worked well and what we could improve.</p>
+        <div class="flex justify-center gap-2 mb-6" id="stars-planning">
+          <span class="star text-3xl text-warm-400" data-star="1" onclick="setStars('planning', 1)">&#9734;</span>
+          <span class="star text-3xl text-warm-400" data-star="2" onclick="setStars('planning', 2)">&#9734;</span>
+          <span class="star text-3xl text-warm-400" data-star="3" onclick="setStars('planning', 3)">&#9734;</span>
+          <span class="star text-3xl text-warm-400" data-star="4" onclick="setStars('planning', 4)">&#9734;</span>
+          <span class="star text-3xl text-warm-400" data-star="5" onclick="setStars('planning', 5)">&#9734;</span>
+        </div>
+        <p class="text-sm font-semibold text-gray-900 mb-3">What did you love?</p>
+        <div class="flex flex-wrap gap-2 mb-5">
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Fast turnaround</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Great options</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Good value / deals</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Clear communication</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Understood my preferences</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Attention to detail</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Flexible with changes</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Smart points strategy</span>
+        </div>
+        <p class="text-sm font-semibold text-gray-900 mb-3">What could be better?</p>
+        <div class="flex flex-wrap gap-2 mb-6">
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Too slow</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Limited options</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Too expensive</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Communication gaps</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Didn't match my taste</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">More guidance</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Points weren't optimized</span>
+        </div>
+        <button onclick="closeModal('feedback-planning'); showToast('Feedback sent!'); highlightEndpoint('patch'); highlightResponse('response');" class="w-full py-3.5 bg-brand-accent text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity">Send feedback</button>
+        <button onclick="closeModal('feedback-planning')" class="w-full py-3 text-gray-900 text-sm font-semibold text-center mt-2">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-feedback-posttrip" class="modal-overlay absolute inset-0 z-40 flex items-end" onclick="closeModalOnOverlay(event, 'feedback-posttrip')">
+    <div class="bottom-sheet bg-white rounded-t-2xl w-full shadow-xl" id="feedback-posttrip-sheet" style="max-height:85%;">
+      <div class="overflow-y-auto p-6" style="max-height:calc(85vh - 40px);">
+        <div class="flex justify-between items-start mb-2">
+          <div></div>
+          <button onclick="closeModal('feedback-posttrip')" class="text-gray-400 hover:text-gray-600 p-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 text-center mb-1">How was the trip that<br>we planned for you?</h3>
+        <p class="text-sm text-gray-500 text-center mb-5">We'd love to hear what worked well and what we could improve.</p>
+        <div class="flex justify-center gap-2 mb-6" id="stars-posttrip">
+          <span class="star text-3xl text-warm-400" data-star="1" onclick="setStars('posttrip', 1)">&#9734;</span>
+          <span class="star text-3xl text-warm-400" data-star="2" onclick="setStars('posttrip', 2)">&#9734;</span>
+          <span class="star text-3xl text-warm-400" data-star="3" onclick="setStars('posttrip', 3)">&#9734;</span>
+          <span class="star text-3xl text-warm-400" data-star="4" onclick="setStars('posttrip', 4)">&#9734;</span>
+          <span class="star text-3xl text-warm-400" data-star="5" onclick="setStars('posttrip', 5)">&#9734;</span>
+        </div>
+        <p class="text-sm font-semibold text-gray-900 mb-3">What made this trip special?</p>
+        <div class="flex flex-wrap gap-2 mb-5">
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Amazing accommodations</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Incredible dining</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Unforgettable experiences</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Seamless logistics</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Great local tips</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Thoughtful VIP touches</span>
+        </div>
+        <p class="text-sm font-semibold text-gray-900 mb-3">What could be better?</p>
+        <div class="flex flex-wrap gap-2 mb-6">
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Experiences were disappointing</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Logistics were bumpy</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Itinerary too packed</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Hotel didn't match expectations</span>
+          <span class="chip px-3 py-1.5 rounded-full text-sm border border-warm-300 bg-warm-50 text-gray-700" onclick="toggleChip(this)">Itinerary too sparse</span>
+        </div>
+        <button onclick="closeModal('feedback-posttrip'); showToast('Feedback sent!'); highlightEndpoint('patch'); highlightResponse('response');" class="w-full py-3.5 bg-brand-accent text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity">Send feedback</button>
+        <button onclick="closeModal('feedback-posttrip')" class="w-full py-3 text-gray-900 text-sm font-semibold text-center mt-2">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</div><!-- end three-col -->
+
+<!-- Toast container -->
+<div id="toast-container" class="fixed bottom-20 left-0 right-0 flex justify-center pointer-events-none z-50"></div>
+
+<script>
+// ── Data ──
+const STATUSES = [
+  { key: 'trip-received', label: 'Trip Received', icon: '↓', badgeIcon: 'download' },
+  { key: 'getting-started', label: 'Getting Started', icon: '🚀', badgeIcon: 'rocket' },
+  { key: 'planning', label: 'Planning Your Trip', icon: '📋', badgeIcon: 'clipboard' },
+  { key: 'review', label: 'Review Your Options', icon: '👀', badgeIcon: 'eye' },
+  { key: 'booking', label: 'Booking Underway', icon: '📦', badgeIcon: 'package' },
+  { key: 'confirmed', label: 'Itinerary Confirmed', icon: '✓', badgeIcon: 'check' },
+  { key: 'enjoy', label: 'Enjoy Your Trip!', icon: '🎉', badgeIcon: 'party' },
+  { key: 'welcome-back', label: 'Welcome Back', icon: '👋', badgeIcon: 'wave' },
+];
+
+const BADGE_ICONS = {
+  download: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+  rocket: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/></svg>',
+  clipboard: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>',
+  eye: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+  package: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M12 3v18"/></svg>',
+  check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+  party: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5.8 11.3L2 22l10.7-3.8"/><path d="M4 3h.01"/><path d="M22 8h.01"/><path d="M15 2h.01"/><path d="M22 20h.01"/><path d="M22 2l-2.24.75a2.9 2.9 0 00-1.96 3.12l.2 1.55c.07.56-.33 1.07-.9 1.13l-1.08.12a3 3 0 00-2.68 2.91V13"/></svg>',
+  wave: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 18.36A9 9 0 005.64 5.64"/><path d="M15.54 15.54A5 5 0 008.46 8.46"/><circle cx="12" cy="12" r="1"/></svg>',
+};
+
+const TRIP_COMPONENTS = [
+  { id: 'flight-1', type: 'flight', day: 1, date: 'November 30', cities: ['Austin', 'London'], name: 'AUS → LHR', airline: 'British Airways', carrier: 'UA 400', depart: '07:00 AM', arrive: '05:00 PM', departDate: 'Fri 16 Jan', arriveDate: 'Fri 16 Jan', miles: '29,000 miles', taxes: '$200', score: '$81/100' },
+  { id: 'hotel-1', type: 'hotel', day: 2, date: 'November 31', cities: ['London'], name: 'The Corinthia London', subtitle: 'Deluxe King Room', stars: 5, perNight: '$850', taxes: '$195', checkin: 'Nov 31', checkout: 'Dec 03', description: 'Elegant and peaceful by the Thames, with a great spa, a beautiful pool, and easy walks to London\'s theatres.', image: 'hotel' },
+  { id: 'exp-1', type: 'experience', day: 3, date: 'December 01', cities: ['London'], name: 'Ice Skating at Somerset House', price: '$29', priceLabel: 'Per person', time: '10:30 AM', description: 'Glide through one of London\'s most beautiful courtyards, with firmasas, lights, and festive energy all around.', image: 'skating' },
+  { id: 'exp-2', type: 'experience', day: 4, date: 'December 02', cities: ['London'], name: 'Ice Skating at Somerset House', price: '$29', priceLabel: 'Per person', time: '03:30 PM', image: 'skating' },
+  { id: 'exp-3', type: 'experience', day: 4, date: 'December 02', cities: ['London'], name: 'Sketch – The Lecture Room', price: '', priceLabel: '', time: '03:30 PM – 05:15 PM', image: 'dining' },
+  { id: 'train-1', type: 'train', day: 5, date: 'December 03', cities: ['London', 'Paris'], name: 'Eurostar London → Paris', carrier: 'Train · Eurostar', depart: '08:25 AM', arrive: '01:15 PM' },
+  { id: 'hotel-2', type: 'hotel', day: 5, date: 'December 03', cities: ['Paris'], name: 'Le Meurice Paris', subtitle: '', stars: 0, perNight: '', taxes: '', checkin: 'Dec 03', checkout: 'Dec 06', image: 'hotel2' },
+  { id: 'exp-4', type: 'experience', day: 6, date: 'December 04', cities: ['Paris'], name: 'Sketch – The Lecture Room', price: '', time: '09:30 AM', image: 'dining' },
+  { id: 'exp-5', type: 'experience', day: 6, date: 'December 04', cities: ['Paris'], name: 'Afternoon Tea at The Ritz', price: '$99', priceLabel: 'Per person', time: '', description: 'An iconic London experience with fine tea, delicate pastries, live piano, and the timeless elegance of The Ritz.', image: 'tea' },
+  { id: 'exp-6', type: 'experience', day: 7, date: 'December 05', cities: ['Paris'], name: 'Sketch – The Lecture Room', price: '', time: '09:30 AM', image: 'dining' },
+  { id: 'flight-2', type: 'flight', day: 8, date: 'December 06', cities: ['Paris', 'Austin'], name: 'CDG → AUS', airline: 'British Airways', carrier: '', depart: '07:00 AM', arrive: '05:00 PM', miles: '', taxes: '', score: '' },
+];
+
+// ── State ──
+let state = {
+  currentStatus: 0,
+  currentTab: 'details',
+  currentSubTab: 'itinerary',
+  componentStates: {},
+  activeModal: null,
+};
+
+// Initialize component states
+function initComponentStates(statusIdx) {
+  const s = {};
+  TRIP_COMPONENTS.forEach(c => {
+    if (statusIdx <= 2) s[c.id] = 'recommended';
+    else if (statusIdx === 3) {
+      // Review: mix
+      if (c.id === 'flight-1') s[c.id] = 'recommended';
+      else if (c.id === 'hotel-1') s[c.id] = 'recommended';
+      else if (c.id === 'exp-1') s[c.id] = 'recommended';
+      else s[c.id] = 'recommended';
+    } else if (statusIdx === 4) {
+      // Booking underway: mix
+      if (['flight-1', 'hotel-1'].includes(c.id)) s[c.id] = 'booked';
+      else if (['exp-1', 'train-1'].includes(c.id)) s[c.id] = 'selected';
+      else s[c.id] = 'recommended';
+    } else {
+      // Confirmed, Enjoy, Welcome Back: all booked
+      s[c.id] = 'booked';
+    }
+  });
+  return s;
+}
+
+// ── Render Functions ──
+function getStatusBadgeIcon(statusIdx) {
+  return BADGE_ICONS[STATUSES[statusIdx].badgeIcon] || '';
+}
+
+function renderStatusNav() {
+  const nav = document.getElementById('status-nav');
+  nav.innerHTML = STATUSES.map((s, i) => `
+    <button class="nav-dot w-3 h-3 rounded-full ${i === state.currentStatus ? 'bg-white active' : 'bg-white/30'}"
+      onclick="goToStatus(${i})" title="${s.label}"></button>
+  `).join('');
+  document.getElementById('status-label').textContent = `${state.currentStatus + 1}/${STATUSES.length} — ${STATUSES[state.currentStatus].label}`;
+}
+
+function renderHeroBadge() {
+  const s = STATUSES[state.currentStatus];
+  document.getElementById('hero-badge').innerHTML = `${getStatusBadgeIcon(state.currentStatus)} ${s.label}`;
+}
+
+function renderTabs() {
+  const detailsBtn = document.getElementById('tab-details');
+  const chatBtn = document.getElementById('tab-chat');
+  if (state.currentTab === 'details') {
+    detailsBtn.className = 'flex-1 py-2.5 text-sm font-medium rounded-full text-center transition-all bg-gray-900 text-white';
+    chatBtn.className = 'flex-1 py-2.5 text-sm font-medium rounded-full text-center transition-all text-gray-500';
+  } else {
+    detailsBtn.className = 'flex-1 py-2.5 text-sm font-medium rounded-full text-center transition-all text-gray-500';
+    chatBtn.className = 'flex-1 py-2.5 text-sm font-medium rounded-full text-center transition-all bg-gray-900 text-white';
+  }
+}
+
+function statusBadgeHTML(status) {
+  const configs = {
+    recommended: { bg: 'bg-warm-100', text: 'text-gray-600', icon: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>', label: 'Recommended' },
+    selected: { bg: 'bg-green-50', text: 'text-green-700', icon: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-6 0v1"/></svg>', label: 'Selected' },
+    rejected: { bg: 'bg-indigo-50', text: 'text-indigo-700', icon: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/></svg>', label: 'Rejected' },
+    booked: { bg: 'bg-green-50', text: 'text-green-700', icon: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>', label: 'Booked' },
+    validated: { bg: 'bg-green-50', text: 'text-green-700', icon: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>', label: 'Validated' },
+  };
+  const c = configs[status] || configs.recommended;
+  return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${c.bg} ${c.text} text-xs font-medium">${c.icon} ${c.label}</span>`;
+}
+
+function componentTypeIcon(type) {
+  const icons = {
+    flight: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5 0 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.3.8.5 1.3.3l.5-.3c.4-.2.6-.7.5-1.1z"/></svg>',
+    hotel: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 21V7a2 2 0 012-2h6v16"/><path d="M21 21V11a2 2 0 00-2-2h-4v12"/><path d="M7 9h2"/><path d="M7 13h2"/><path d="M7 17h2"/><path d="M15 13h2"/><path d="M15 17h2"/></svg>',
+    experience: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    train: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="3" width="16" height="16" rx="2"/><path d="M4 11h16"/><path d="M12 3v8"/><path d="M8 19l-2 3"/><path d="M16 19l2 3"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/></svg>',
+  };
+  return icons[type] || icons.experience;
+}
+
+function getImagePlaceholder(comp) {
+  const gradients = {
+    hotel: 'linear-gradient(135deg, #8B7355 0%, #C4A882 50%, #D4C4A8 100%)',
+    hotel2: 'linear-gradient(135deg, #6B5B4F 0%, #9B8B7F 50%, #C4B4A8 100%)',
+    skating: 'linear-gradient(135deg, #87CEEB 0%, #B0E0E6 50%, #E0F0FF 100%)',
+    dining: 'linear-gradient(135deg, #8B4513 0%, #CD853F 50%, #DEB887 100%)',
+    tea: 'linear-gradient(135deg, #DAA520 0%, #F0C040 50%, #FFF8DC 100%)',
+  };
+  return gradients[comp.image] || gradients.hotel;
+}
+
+function showThumbs(statusIdx) {
+  return statusIdx >= 2 && statusIdx <= 4;
+}
+
+function showRequestChanges(statusIdx) {
+  return statusIdx >= 2 && statusIdx <= 4;
+}
+
+function showScore(statusIdx) {
+  return statusIdx === 3;
+}
+
+function renderComponentCard(comp, statusIdx) {
+  const compState = state.componentStates[comp.id] || 'recommended';
+  const hasThumbs = showThumbs(statusIdx) && compState !== 'booked';
+  const hasRequestChanges = showRequestChanges(statusIdx) && compState !== 'booked';
+  const hasScore = showScore(statusIdx);
+  const hasImage = comp.image && ['hotel', 'experience'].includes(comp.type);
+
+  let detailsHTML = '';
+
+  if (comp.type === 'flight') {
+    detailsHTML = `
+      <div class="flex items-center gap-1 text-xs text-gray-500 mb-1">
+        <span class="font-medium text-gray-400">${comp.carrier || ''}</span>
+        ${comp.carrier ? '·' : ''}
+        <span>${comp.airline}</span>
+      </div>
+      <div class="flex items-center justify-between mt-2">
+        <div class="text-center">
+          <p class="text-sm font-semibold text-gray-900">${comp.depart}</p>
+          <p class="text-xs text-gray-400">${comp.departDate || ''}</p>
+        </div>
+        <div class="flex-1 mx-3 flex items-center">
+          <div class="flex-1 border-t border-dashed border-gray-300"></div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5" class="mx-1"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5 0 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.3.8.5 1.3.3l.5-.3c.4-.2.6-.7.5-1.1z"/></svg>
+          <div class="flex-1 border-t border-dashed border-gray-300"></div>
+        </div>
+        <div class="text-center">
+          <p class="text-sm font-semibold text-gray-900">${comp.arrive}</p>
+          <p class="text-xs text-gray-400">${comp.arriveDate || ''}</p>
+        </div>
+      </div>
+      ${comp.miles || comp.taxes ? `
+      <div class="flex items-center gap-4 mt-2.5">
+        ${comp.miles ? `<div class="flex items-center gap-1 text-xs"><span class="text-gray-400">$</span> <span class="font-medium text-gray-700">Miles</span> <span class="text-gray-500">${comp.miles}</span></div>` : ''}
+        ${comp.taxes ? `<div class="flex items-center gap-1 text-xs"><span class="text-gray-400">$</span> <span class="font-medium text-gray-700">Taxes</span> <span class="text-gray-500">${comp.taxes}</span></div>` : ''}
+      </div>` : ''}
+    `;
+  } else if (comp.type === 'hotel') {
+    detailsHTML = `
+      ${hasImage ? `<div class="rounded-lg overflow-hidden mb-3 h-36 relative" style="background:${getImagePlaceholder(comp)}">
+        ${hasScore ? `<div class="absolute top-2 right-2 bg-gray-900 text-white text-xs font-bold px-2 py-1 rounded-md">Score ${comp.score || '$81/100'}</div>` : ''}
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+          <p class="text-white text-xs">${comp.subtitle || ''}</p>
+        </div>
+      </div>` : ''}
+      ${comp.stars ? `<div class="flex items-center gap-0.5 mb-1">${'★'.repeat(comp.stars)}<span class="text-xs text-gray-400 ml-1">${comp.stars}.0</span></div>` : ''}
+      ${comp.description ? `<p class="text-xs text-gray-500 mb-2 leading-relaxed">${comp.description}</p>` : ''}
+      <div class="flex items-center gap-4 text-xs">
+        ${comp.perNight ? `<div><span class="text-gray-400">Per night</span> <span class="font-medium text-gray-700">${comp.perNight}</span></div>` : ''}
+        ${comp.taxes ? `<div><span class="text-gray-400">Taxes</span> <span class="font-medium text-gray-700">${comp.taxes}</span></div>` : ''}
+      </div>
+      <p class="text-xs text-gray-400 mt-1">${comp.checkin} → ${comp.checkout}</p>
+    `;
+  } else if (comp.type === 'experience') {
+    detailsHTML = `
+      ${hasImage ? `<div class="rounded-lg overflow-hidden mb-3 h-32 relative" style="background:${getImagePlaceholder(comp)}">
+        ${hasScore ? `<div class="absolute top-2 right-2 bg-gray-900 text-white text-xs font-bold px-2 py-1 rounded-md">Score ${comp.score || '$81/100'}</div>` : ''}
+      </div>` : ''}
+      ${comp.description ? `<p class="text-xs text-gray-500 mb-2 leading-relaxed">${comp.description}</p>` : ''}
+      <div class="flex items-center gap-4 text-xs">
+        ${comp.price ? `<div><span class="text-gray-400">${comp.priceLabel || 'Per person'}</span> <span class="font-medium text-gray-700">${comp.price}</span></div>` : ''}
+        ${comp.time ? `<div class="text-gray-500">${comp.time}</div>` : ''}
+      </div>
+    `;
+  } else if (comp.type === 'train') {
+    detailsHTML = `
+      <p class="text-xs text-gray-400 mb-2">${comp.carrier || 'Train · Eurostar'}</p>
+      <div class="flex items-center gap-3 text-sm">
+        <span class="font-medium text-gray-900">${comp.depart}</span>
+        <span class="text-gray-400">→</span>
+        <span class="font-medium text-gray-900">${comp.arrive}</span>
+      </div>
+    `;
+  }
+
+  const lastUpdate = 'Jan 2, 3:05 PM';
+
+  return `
+    <div class="bg-white rounded-xl border border-warm-300 shadow-sm overflow-hidden card-transition mb-3 mx-4">
+      ${hasScore && comp.type === 'flight' ? `<div class="flex justify-between items-center px-4 pt-3">
+        <span class="text-xs text-gray-500">Outstanding value</span>
+        <span class="bg-gray-900 text-white text-xs font-bold px-2 py-0.5 rounded-md">Score ${comp.score}</span>
+      </div>` : ''}
+      <div class="p-4 ${hasScore && comp.type === 'flight' ? 'pt-2' : ''}">
+        <div class="flex items-start justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <div class="w-8 h-8 rounded-full bg-warm-100 flex items-center justify-center text-gray-500">${componentTypeIcon(comp.type)}</div>
+            <div>
+              <p class="text-xs text-gray-400 capitalize">${comp.type === 'experience' ? 'Experience' : comp.type === 'train' ? 'Train' : comp.type === 'hotel' ? 'Hotel' : 'Flight'}${comp.cities ? ' · ' + comp.cities[comp.cities.length - 1] : ''}</p>
+              <p class="text-sm font-semibold text-gray-900">${comp.name}</p>
+            </div>
+          </div>
+          ${hasThumbs ? `
+          <div class="flex items-center gap-1">
+            <button class="thumb-btn w-8 h-8 rounded-full flex items-center justify-center ${compState === 'selected' ? 'active-up' : ''}" onclick="thumbUp('${comp.id}')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/></svg>
+            </button>
+            <button class="thumb-btn w-8 h-8 rounded-full flex items-center justify-center ${compState === 'rejected' ? 'active-down' : ''}" onclick="thumbDown('${comp.id}')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15V19a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/></svg>
+            </button>
+          </div>` : ''}
+        </div>
+        ${detailsHTML}
+        <div class="flex items-center justify-between mt-3 pt-3 border-t border-warm-200">
+          <div class="flex items-center gap-2">
+            ${statusBadgeHTML(compState)}
+            <span class="text-xs text-gray-400">· ${lastUpdate}</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-4 mt-2">
+          <button class="text-xs font-medium text-gray-700 hover:text-gray-900">View Details</button>
+          ${hasRequestChanges ? `<button onclick="openModal('request-changes')" class="text-xs font-medium text-gray-700 hover:text-gray-900">Request changes</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSummaryRow(comp) {
+  const compState = state.componentStates[comp.id] || 'recommended';
+  const showThumbsInSummary = showThumbs(state.currentStatus) && compState !== 'booked';
+  return `
+    <div class="flex items-center gap-3 py-2.5 px-4 border-b border-warm-200">
+      <div class="w-7 h-7 rounded-full bg-warm-100 flex items-center justify-center text-gray-400 shrink-0">${componentTypeIcon(comp.type)}</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-1">
+          <p class="text-xs text-gray-400 capitalize">${comp.type}${comp.cities ? ' · ' + comp.cities[comp.cities.length - 1] : ''}</p>
+        </div>
+        <p class="text-sm font-medium text-gray-900 truncate">${comp.name}</p>
+        <p class="text-xs text-gray-400">${comp.time || comp.depart || ''}</p>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        ${statusBadgeHTML(compState)}
+        ${showThumbsInSummary ? `
+        <button class="thumb-btn w-6 h-6 rounded-full flex items-center justify-center ${compState === 'selected' ? 'active-up' : ''}" onclick="thumbUp('${comp.id}')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/></svg>
+        </button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function renderAvatars() {
+  return `
+    <div class="flex items-center justify-between px-4 py-3">
+      <div class="flex -space-x-2">
+        <div class="w-9 h-9 rounded-full bg-amber-200 border-2 border-white flex items-center justify-center text-xs font-semibold text-amber-800">JD</div>
+        <div class="w-9 h-9 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-xs font-semibold text-gray-600">SU</div>
+        <div class="w-9 h-9 rounded-full bg-rose-200 border-2 border-white flex items-center justify-center text-xs font-semibold text-rose-800">MK</div>
+      </div>
+      <button class="w-9 h-9 rounded-full bg-warm-200 flex items-center justify-center text-gray-500 hover:bg-warm-300">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>
+      </button>
+    </div>
+  `;
+}
+
+function renderSubTabs() {
+  const isEnjoyOrLater = state.currentStatus >= 6;
+  const tabs = isEnjoyOrLater
+    ? [{ key: 'itinerary', label: 'Trip Itinerary' }, { key: 'summary', label: 'Summary' }]
+    : [{ key: 'itinerary', label: 'Itinerary' }, { key: 'summary', label: 'Summary' }, { key: 'detailed', label: 'Detailed' }];
+
+  return `
+    <div class="flex items-center gap-4 px-4 py-3">
+      <div class="w-6 h-6 text-gray-400">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+      ${tabs.map(t => `
+        <button onclick="switchSubTab('${t.key}')" class="text-sm ${state.currentSubTab === t.key ? 'font-semibold text-gray-900 underline underline-offset-4 decoration-2' : 'text-gray-400 hover:text-gray-600'}">
+          ${t.label}
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderInsiderTips() {
+  const tips = ['Transportation', 'Money & Connectivity', 'Culture & Etiquette', 'Packing & Prep'];
+  return `
+    <div class="px-4 mt-4">
+      <h3 class="text-base font-semibold text-gray-900 mb-3">Insider Tips</h3>
+      ${tips.map((tip, i) => `
+        <div class="border-b border-warm-200">
+          <button onclick="toggleInsider(${i})" class="w-full flex items-center justify-between py-3 text-sm text-gray-700">
+            <div class="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+              ${tip}
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="insider-chevron-${i} transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="insider-content insider-${i} text-xs text-gray-500 pb-3 px-6">
+            <p>Helpful tips and recommendations for ${tip.toLowerCase()} during your London & Paris trip will appear here.</p>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderEnhanceSection() {
+  return `
+    <div class="px-4 mt-6">
+      <h3 class="text-base font-semibold text-gray-900 mb-3">Enhance your trip</h3>
+      <div class="flex gap-3">
+        <div class="flex-1 bg-warm-100 rounded-xl p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-warm-200 transition-colors">
+          <div class="w-10 h-10 rounded-full bg-warm-200 flex items-center justify-center text-gray-500 mb-2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <p class="text-sm font-medium text-gray-900">Add to your trip</p>
+          <p class="text-xs text-gray-500 mt-0.5">Need help adding something new to your itinerary?</p>
+        </div>
+        <div class="w-20 h-24 rounded-xl overflow-hidden" style="background: linear-gradient(135deg, #8B7355, #C4A882);"></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderEmptyState(type) {
+  if (type === 'trip-received') {
+    return `
+      <div class="flex flex-col items-center justify-center px-8 py-12 text-center">
+        <div class="w-40 h-40 rounded-full bg-warm-100 flex items-center justify-center mb-6">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Your trip request has been received</h3>
+        <p class="text-sm text-gray-500 mb-6">Our team is reviewing your request and preparing to start planning your trip.</p>
+        <div class="bg-warm-100 rounded-xl p-4 w-full mb-4">
+          <p class="text-sm text-gray-700 font-medium">Want to add anything else?</p>
+          <p class="text-xs text-gray-500 mt-1">Feel free to chat with your concierge if you'd like to request something specific while we plan.</p>
+        </div>
+        <button class="w-full py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl">Chat with Concierge</button>
+      </div>
+    `;
+  } else {
+    return `
+      <div class="flex flex-col items-center justify-center px-8 py-12 text-center">
+        <div class="w-40 h-40 rounded-full bg-warm-100 flex items-center justify-center mb-6">
+          <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">We're getting started on your trip</h3>
+        <p class="text-sm text-gray-500 mb-6">Your concierge is researching flights, hotels, and experiences that match your preferences.</p>
+        <div class="bg-warm-100 rounded-xl p-4 w-full mb-4 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-warm-200 flex items-center justify-center shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6B6B" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          </div>
+          <div class="text-left">
+            <p class="text-xs text-gray-500">Next update scheduled for</p>
+            <p class="text-sm font-semibold text-gray-900">Mar 12, 2026</p>
+          </div>
+        </div>
+        <div class="bg-warm-100 rounded-xl p-4 w-full mb-4">
+          <p class="text-sm text-gray-700 font-medium">Want to add anything else?</p>
+          <p class="text-xs text-gray-500 mt-1">Feel free to chat with your concierge if you'd like to request something specific while we plan.</p>
+        </div>
+        <button class="w-full py-3 bg-gray-900 text-white text-sm font-semibold rounded-xl">Chat with Concierge</button>
+      </div>
+    `;
+  }
+}
+
+function renderChatPlaceholder() {
+  return `
+    <div class="flex flex-col items-center justify-center px-8 py-16 text-center">
+      <div class="w-16 h-16 rounded-full bg-warm-100 flex items-center justify-center mb-4">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+      </div>
+      <h3 class="text-base font-semibold text-gray-900 mb-2">Concierge Chat</h3>
+      <p class="text-sm text-gray-500">Chat with your concierge about your trip.</p>
+    </div>
+  `;
+}
+
+function renderContent() {
+  const area = document.getElementById('content-area');
+  const statusIdx = state.currentStatus;
+  const statusKey = STATUSES[statusIdx].key;
+
+  if (state.currentTab === 'chat') {
+    area.innerHTML = renderAvatars() + renderChatPlaceholder();
+    return;
+  }
+
+  // Empty states for first 2 statuses
+  if (statusIdx <= 1) {
+    area.innerHTML = renderAvatars() + renderEmptyState(statusKey);
+    return;
+  }
+
+  // Itinerary view for statuses 2-7
+  let html = renderAvatars();
+
+  // Sub-tabs
+  html += renderSubTabs();
+
+  // Group components by day
+  const days = {};
+  TRIP_COMPONENTS.forEach(c => {
+    if (!days[c.day]) days[c.day] = { date: c.date, cities: c.cities, components: [] };
+    days[c.day].components.push(c);
+    // Merge cities
+    c.cities.forEach(city => {
+      if (!days[c.day].cities.includes(city)) days[c.day].cities.push(city);
+    });
+  });
+
+  if (state.currentSubTab === 'summary') {
+    // Summary view - compact rows
+    Object.keys(days).forEach(dayNum => {
+      const day = days[dayNum];
+      html += `
+        <div class="flex items-center gap-2 px-4 py-2 mt-2">
+          <p class="text-xs font-semibold text-gray-900">Day ${dayNum} · ${day.date}</p>
+          ${day.cities.map(c => `<span class="px-2 py-0.5 rounded-full bg-warm-200 text-xs text-gray-600">${c}</span>`).join('')}
+        </div>
+      `;
+      day.components.forEach(comp => {
+        html += renderSummaryRow(comp);
+      });
+    });
+  } else {
+    // Itinerary / Detailed view - full cards
+    Object.keys(days).forEach(dayNum => {
+      const day = days[dayNum];
+      html += `
+        <div class="flex items-center gap-2 px-4 py-3 mt-2">
+          <p class="text-sm font-semibold text-gray-900">Day ${dayNum} · ${day.date}</p>
+          ${day.cities.map(c => `<span class="px-2 py-0.5 rounded-full bg-warm-200 text-xs text-gray-600">${c}</span>`).join('')}
+        </div>
+      `;
+      day.components.forEach(comp => {
+        html += renderComponentCard(comp, statusIdx);
+      });
+    });
+  }
+
+  // Enhance section (not on Welcome Back)
+  if (statusIdx < 7) {
+    html += renderEnhanceSection();
+  }
+
+  // Insider Tips
+  html += renderInsiderTips();
+
+  area.innerHTML = html;
+}
+
+// ── Interactions ──
+function goToStatus(idx) {
+  state.currentStatus = idx;
+  state.currentTab = 'details';
+  state.currentSubTab = 'itinerary';
+  state.componentStates = initComponentStates(idx);
+  render();
+  document.getElementById('phone-scroll').scrollTop = 0;
+  panelGlow();
+}
+
+function prevStatus() {
+  if (state.currentStatus > 0) goToStatus(state.currentStatus - 1);
+}
+
+function nextStatus() {
+  if (state.currentStatus < STATUSES.length - 1) goToStatus(state.currentStatus + 1);
+}
+
+function switchTab(tab) {
+  state.currentTab = tab;
+  renderTabs();
+  renderContent();
+}
+
+function switchSubTab(tab) {
+  state.currentSubTab = tab;
+  renderContent();
+}
+
+function thumbUp(compId) {
+  const current = state.componentStates[compId];
+  state.componentStates[compId] = current === 'selected' ? 'recommended' : 'selected';
+  renderContent();
+  highlightEndpoint('patch');
+  highlightResponse('response');
+}
+
+function thumbDown(compId) {
+  const current = state.componentStates[compId];
+  state.componentStates[compId] = current === 'rejected' ? 'recommended' : 'rejected';
+  renderContent();
+  highlightEndpoint('patch');
+  highlightResponse('response');
+}
+
+function openModal(name) {
+  state.activeModal = name;
+  const el = document.getElementById('modal-' + name);
+  if (el) {
+    el.classList.add('active');
+    const sheet = el.querySelector('.bottom-sheet');
+    if (sheet) setTimeout(() => sheet.classList.add('active'), 10);
+  }
+  if (name === 'suggestion-states' || name === 'reviewing') {
+    highlightEndpoint('patch');
+  }
+  if (name === 'request-changes') {
+    highlightEndpoint('post');
+  }
+}
+
+function closeModal(name) {
+  const el = document.getElementById('modal-' + name);
+  if (el) {
+    const sheet = el.querySelector('.bottom-sheet');
+    if (sheet) sheet.classList.remove('active');
+    setTimeout(() => el.classList.remove('active'), sheet ? 300 : 0);
+  }
+  state.activeModal = null;
+}
+
+function closeModalOnOverlay(event, name) {
+  if (event.target === event.currentTarget) closeModal(name);
+}
+
+function setStars(type, count) {
+  const container = document.getElementById('stars-' + type);
+  const stars = container.querySelectorAll('.star');
+  stars.forEach((star, i) => {
+    star.innerHTML = i < count ? '&#9733;' : '&#9734;';
+    star.className = `star text-3xl ${i < count ? 'text-gray-900' : 'text-warm-400'}`;
+  });
+}
+
+function toggleChip(el) {
+  el.classList.toggle('selected');
+}
+
+function toggleInsider(idx) {
+  const content = document.querySelector('.insider-' + idx);
+  const chevron = document.querySelector('.insider-chevron-' + idx);
+  if (content) {
+    content.classList.toggle('open');
+    if (chevron) chevron.style.transform = content.classList.contains('open') ? 'rotate(180deg)' : '';
+  }
+}
+
+function showToast(message) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast bg-gray-900 text-white text-sm font-medium px-6 py-3 rounded-full shadow-lg';
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 2200);
+}
+
+// ── Panel Highlight System ──
+function highlightPanelSection(panelId, selector, scrollTo) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  const target = panel.querySelector(selector);
+  if (!target) return;
+  panel.querySelectorAll('.highlight').forEach(el => el.classList.remove('highlight'));
+  void target.offsetWidth; // force reflow to restart animation
+  target.classList.add('highlight');
+  if (scrollTo !== false) target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  setTimeout(() => target.classList.remove('highlight'), 2600);
+}
+
+function highlightEndpoint(pattern) {
+  highlightPanelSection('left-panel', `.endpoint-section[data-endpoint*="${pattern}"]`);
+}
+
+function highlightResponse(section) {
+  highlightPanelSection('right-panel', `.response-section[data-section="${section}"]`);
+}
+
+function panelGlow() {
+  ['left-panel', 'right-panel'].forEach(id => {
+    const p = document.getElementById(id);
+    if (p) {
+      p.classList.remove('panel-glow');
+      void p.offsetWidth;
+      p.classList.add('panel-glow');
+      setTimeout(() => p.classList.remove('panel-glow'), 1600);
+    }
+  });
+}
+
+// ── Main Render ──
+function render() {
+  renderStatusNav();
+  renderHeroBadge();
+  renderTabs();
+  renderContent();
+  renderLeftPanel(state.currentStatus);
+  renderRightPanel(state.currentStatus);
+}
+
+// ── Keyboard navigation ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') prevStatus();
+  if (e.key === 'ArrowRight') nextStatus();
+  if (e.key === 'Escape' && state.activeModal) closeModal(state.activeModal);
+});
+
+// The developer panels are not part of this copy.
+function renderLeftPanel() {}
+function renderRightPanel() {}
+
+// ── Init ──
+state.componentStates = initComponentStates(0);
+render();
+</script>
+
+<!-- Help text -->
+<p class="text-white/30 text-xs mt-4 text-center">Use arrow keys (← →) to navigate between statuses. Click dots above to jump to a specific status.</p>
+<p class="text-white/30 text-xs mt-1 text-center">
+  <button onclick="openModal('suggestion-states')" class="underline hover:text-white/50">Show Suggestion States</button> ·
+  <button onclick="openModal('reviewing')" class="underline hover:text-white/50">Show Reviewing Modal</button> ·
+  <button onclick="openModal('feedback-planning')" class="underline hover:text-white/50">Planning Feedback</button> ·
+  <button onclick="openModal('feedback-posttrip')" class="underline hover:text-white/50">Post-Trip Feedback</button>
+</p>
+
+</body>
+</html>

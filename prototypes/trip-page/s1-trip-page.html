@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S1 — Trip Page</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../_shared/fonts.css">
+<link rel="stylesheet" href="tailwind.css">
+  <style>
+    .hl-highlight {
+      outline: 2px solid #4f46e5 !important;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.15) !important;
+      border-radius: inherit;
+      transition: outline 0.2s, box-shadow 0.2s;
+    }
+    .hl-highlight-label {
+      position: absolute;
+      top: -10px;
+      right: 8px;
+      background: #4f46e5;
+      color: white;
+      font-size: 8px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      z-index: 30;
+      pointer-events: none;
+      font-family:Hanken Grotesk,sans-serif;
+      letter-spacing: 0.04em;
+    }
+  </style>
+</head>
+<body class="bg-gray-300 min-h-screen font-body py-6">
+<a href="/prototypes/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:8px 12px;border-radius:999px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px/1.3 'Hanken Grotesk',system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #0006">Prototype by Mishal Chowdhury · names and data replaced · back to portfolio</a>
+
+  
+  <div class="flex items-start justify-center gap-5 px-4">
+
+    
+    <div class="shrink-0" style="width:220px; position:sticky; top:24px;">
+
+      
+      <div class="bg-white rounded-2xl shadow-md px-4 py-3 mb-3">
+        <span class="text-[10px] font-semibold text-gray-400 tracking-widest uppercase block text-center mb-2">DEMO — Switch Phase</span>
+        <div class="flex flex-wrap gap-1.5 justify-center">
+          <button onclick="setPhase('not-started')" id="pbtn-not-started" class="pbtn px-2.5 py-1 text-[10px] rounded-full border font-medium transition-all">Not Started</button>
+          <button onclick="setPhase('trip-identified')" id="pbtn-trip-identified" class="pbtn px-2.5 py-1 text-[10px] rounded-full border font-medium transition-all">Trip Identified</button>
+          <button onclick="setPhase('outline')" id="pbtn-outline" class="pbtn px-2.5 py-1 text-[10px] rounded-full border font-medium transition-all">Outline</button>
+          <button onclick="setPhase('itinerary-review')" id="pbtn-itinerary-review" class="pbtn px-2.5 py-1 text-[10px] rounded-full border font-medium transition-all">Itinerary Review</button>
+          <button onclick="setPhase('booking-in-progress')" id="pbtn-booking-in-progress" class="pbtn px-2.5 py-1 text-[10px] rounded-full border font-medium transition-all">Booking In Progress</button>
+          <button onclick="setPhase('booking-complete')" id="pbtn-booking-complete" class="pbtn px-2.5 py-1 text-[10px] rounded-full border font-medium transition-all">Booking Complete</button>
+          <button onclick="setPhase('on-trip')" id="pbtn-on-trip" class="pbtn px-2.5 py-1 text-[10px] rounded-full border font-medium transition-all">On Trip</button>
+          <button onclick="setPhase('post-trip')" id="pbtn-post-trip" class="pbtn px-2.5 py-1 text-[10px] rounded-full border font-medium transition-all">Post Trip</button>
+        </div>
+      </div>
+
+      
+      <div class="bg-white rounded-2xl shadow-md px-4 py-3">
+        <span class="text-[10px] font-semibold text-gray-400 tracking-widest uppercase block text-center mb-2">DEMO — Override Statuses</span>
+        <div class="flex flex-wrap gap-1.5 justify-center">
+          <button onclick="overrideAllStatuses('working-on-it')" class="sbtn px-2 py-1 text-[9px] rounded-full border border-gray-300 text-gray-600 font-medium transition-all">Working on it</button>
+          <button onclick="overrideAllStatuses('need-your-input')" class="sbtn px-2 py-1 text-[9px] rounded-full border border-gray-300 text-gray-600 font-medium transition-all">Need your input</button>
+          <button onclick="overrideAllStatuses('ready-for-approval')" class="sbtn px-2 py-1 text-[9px] rounded-full border border-gray-300 text-gray-600 font-medium transition-all">Ready for approval</button>
+          <button onclick="overrideAllStatuses('on-hold')" class="sbtn px-2 py-1 text-[9px] rounded-full border border-gray-300 text-gray-600 font-medium transition-all">On hold</button>
+          <button onclick="overrideAllStatuses('confirmed')" class="sbtn px-2 py-1 text-[9px] rounded-full border border-gray-300 text-gray-600 font-medium transition-all">Confirmed</button>
+          <button onclick="overrideAllStatuses('booked')" class="sbtn px-2 py-1 text-[9px] rounded-full border border-gray-300 text-gray-600 font-medium transition-all">Booked</button>
+          <button onclick="resetMixedStatuses()" class="sbtn px-2 py-1 text-[9px] rounded-full border border-[#4f46e5] text-[#4f46e5] font-medium transition-all">Reset Mixed</button>
+        </div>
+      </div>
+
+    </div>
+
+  
+  <div class="relative bg-[#f6f4f0] overflow-hidden flex flex-col" style="width:390px; height:844px; border-radius:48px; border:10px solid #23293a; box-shadow:0 40px 100px rgba(0,0,0,0.4);">
+
+    
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-[#23293a] rounded-b-3xl z-20"></div>
+
+    
+    <div class="flex justify-between items-center px-7 pt-8 pb-1 bg-[#f6f4f0] shrink-0">
+      <span class="text-[11px] font-bold text-[#23293a]">9:41</span>
+      <div class="flex items-center gap-1.5">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+          <rect x="0" y="3.5" width="2.5" height="6.5" rx="0.8" fill="#23293a"/>
+          <rect x="3.5" y="2" width="2.5" height="8" rx="0.8" fill="#23293a"/>
+          <rect x="7" y="0.5" width="2.5" height="9.5" rx="0.8" fill="#23293a"/>
+          <rect x="10.5" y="0.5" width="2.5" height="9.5" rx="0.8" fill="#23293a" opacity="0.25"/>
+        </svg>
+        <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
+          <path d="M7 2.5C8.9 2.5 10.6 3.3 11.8 4.6L13 3.4C11.4 1.7 9.3 0.7 7 0.7C4.7 0.7 2.6 1.7 1 3.4L2.2 4.6C3.4 3.3 5.1 2.5 7 2.5Z" fill="#23293a"/>
+          <path d="M7 5.5C8.2 5.5 9.2 6 10 6.8L11.2 5.6C10 4.4 8.6 3.7 7 3.7C5.4 3.7 4 4.4 2.8 5.6L4 6.8C4.8 6 5.8 5.5 7 5.5Z" fill="#23293a"/>
+          <circle cx="7" cy="9.5" r="1.3" fill="#23293a"/>
+        </svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none">
+          <rect x="0.5" y="0.5" width="20" height="10" rx="3" stroke="#23293a" stroke-opacity="0.3"/>
+          <rect x="2" y="2" width="14" height="7" rx="1.5" fill="#23293a"/>
+          <path d="M22 4V7C22.8 6.7 23.3 6.2 23.3 5.5C23.3 4.8 22.8 4.3 22 4Z" fill="#23293a" opacity="0.4"/>
+        </svg>
+      </div>
+    </div>
+
+    
+    <div class="flex items-center justify-between px-4 py-2.5 bg-[#f6f4f0] border-b border-[#eae3d7] shrink-0">
+      <a href="index.html" class="p-1.5 rounded-xl hover:bg-[#eae3d7] transition-colors">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="#23293a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="text-center">
+        <div class="text-[9px] font-semibold text-gray-400 tracking-[0.18em] uppercase">TRIP</div>
+        <div class="text-[15px] font-semibold text-[#23293a] leading-tight">Maldives Escape</div>
+      </div>
+      <button class="p-1.5 rounded-xl hover:bg-[#eae3d7] transition-colors">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="5" cy="12" r="1.5" fill="#23293a"/>
+          <circle cx="12" cy="12" r="1.5" fill="#23293a"/>
+          <circle cx="19" cy="12" r="1.5" fill="#23293a"/>
+        </svg>
+      </button>
+    </div>
+
+    
+    <div class="px-4 pt-3 pb-2 shrink-0">
+      <div class="bg-[#23293a] rounded-2xl overflow-hidden">
+        <div class="relative h-28">
+          <div class="absolute inset-0" style="background:linear-gradient(135deg,#1a4a6b,#2d7daa)"></div>
+          <div class="absolute inset-0 bg-gradient-to-b from-[#23293a]/30 via-transparent to-[#23293a]"></div>
+          <div id="phase-badge-wrap" class="absolute top-3 left-3">
+            <span id="phase-badge" class="text-[10px] font-bold px-2.5 py-1 rounded-full text-white bg-[#4f46e5]">Itinerary Review</span>
+          </div>
+          
+        </div>
+        <div class="px-4 py-3">
+          <div class="text-white font-semibold text-sm">Maldives Escape</div>
+          <div class="flex justify-between items-end mt-0.5">
+            <div>
+              <div class="text-gray-400 text-[11px]">Mar 15 – Mar 22, 2026 · 7 nights</div>
+              <div class="text-gray-400 text-[11px]">2 guests · est. $18,500</div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <div id="phase-banner" class="mx-4 mb-2 rounded-xl px-3.5 py-2.5 flex items-start gap-2 shrink-0" style="background:rgba(79,70,229,0.08); border:1px solid rgba(79,70,229,0.2)">
+      <svg class="mt-0.5 shrink-0" width="12" height="12" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="#4f46e5" stroke-width="2"/>
+        <path d="M12 8V12M12 16H12.01" stroke="#4f46e5" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <p id="phase-banner-text" class="text-[10px] font-medium leading-snug text-[#4f46e5]">Your advisor has shared an itinerary for review. Please approve or decline each option — they're standing by.</p>
+    </div>
+
+    
+    <div class="flex-1 overflow-y-auto pb-2" id="trip-scroll">
+
+      
+      <div class="mx-4 mb-2" id="hl-glance-section">
+        <button onclick="toggleGlance()" class="w-full flex items-center justify-between py-2.5 border-b border-[#eae3d7]">
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-bold text-[#4f46e5] tracking-[0.15em] uppercase">At a Glance</span>
+          </div>
+          <svg id="glance-chev" width="12" height="12" viewBox="0 0 24 24" fill="none" class="transition-transform duration-200">
+            <path d="M6 9L12 15L18 9" stroke="#23293a" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+        <div id="glance-body" class="hidden pt-3 pb-1">
+
+          
+          <div class="flex items-center gap-1.5 flex-wrap mb-3">
+            <span class="bg-[#23293a] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">Malé</span>
+            <svg width="12" height="8" viewBox="0 0 16 10" fill="none"><path d="M1 5h14M10 1l4 4-4 4" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="bg-[#eae3d7] text-[#23293a] text-[10px] font-bold px-2.5 py-1 rounded-full">Noonu Atoll</span>
+            <svg width="12" height="8" viewBox="0 0 16 10" fill="none"><path d="M1 5h14M10 1l4 4-4 4" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="bg-[#23293a] text-white text-[10px] font-bold px-2.5 py-1 rounded-full">Malé</span>
+          </div>
+
+          
+          <div class="flex items-center gap-3 mb-3">
+            <span class="text-[8px] font-bold text-gray-400 uppercase tracking-wider">Legend</span>
+            <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-[#12B28C]"></div><span class="text-[9px] text-gray-400">Confirmed</span></div>
+            <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-[#4f46e5]"></div><span class="text-[9px] text-gray-400">Needs input</span></div>
+            <div class="flex items-center gap-1"><div class="w-1.5 h-1.5 rounded-full bg-gray-300"></div><span class="text-[9px] text-gray-400">Working on it</span></div>
+          </div>
+
+          
+          <div class="space-y-0">
+
+            
+            <div class="flex gap-2.5">
+              <div class="flex flex-col items-center w-5">
+                <div class="w-5 h-5 rounded-md bg-[#23293a] flex items-center justify-center shrink-0"><span class="text-white text-[8px] font-bold">1</span></div>
+                <div class="w-px flex-1 bg-[#eae3d7] mt-1"></div>
+              </div>
+              <div class="flex-1 pb-2">
+                <div class="text-[10px] font-semibold text-[#23293a] mb-1">Sat, Mar 15 · Malé</div>
+                <div class="space-y-1">
+                  <div onclick="scrollToComponent('d1')" class="flex items-center gap-2 bg-white rounded-lg border border-[#eae3d7] px-2 py-1.5 cursor-pointer hover:border-[#4f46e5]/40 transition">
+                    <div class="w-1.5 h-1.5 rounded-full bg-[#12B28C] shrink-0"></div>
+                    <span class="text-[10px] text-[#23293a]">Flight SYD → MLE</span>
+                  </div>
+                  <div onclick="scrollToComponent('d1')" class="flex items-center gap-2 bg-white rounded-lg border border-[#eae3d7] px-2 py-1.5 cursor-pointer hover:border-[#4f46e5]/40 transition">
+                    <div class="w-1.5 h-1.5 rounded-full bg-[#4f46e5] shrink-0"></div>
+                    <span class="text-[10px] text-[#23293a]">Soneva Jani — Overwater Villa</span>
+                  </div>
+                  <div onclick="scrollToComponent('d1')" class="flex items-center gap-2 bg-white rounded-lg border border-[#eae3d7] px-2 py-1.5 cursor-pointer hover:border-[#4f46e5]/40 transition">
+                    <div class="w-1.5 h-1.5 rounded-full bg-[#12B28C] shrink-0"></div>
+                    <span class="text-[10px] text-[#23293a]">Speedboat Transfer</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="flex gap-2.5">
+              <div class="flex flex-col items-center w-5">
+                <div class="w-5 h-5 rounded-md bg-gray-100 flex items-center justify-center shrink-0"><span class="text-gray-500 text-[8px] font-bold">2</span></div>
+                <div class="w-px flex-1 bg-[#eae3d7] mt-1"></div>
+              </div>
+              <div class="flex-1 pb-2">
+                <div class="text-[10px] font-semibold text-[#23293a] mb-1">Sun, Mar 16 · Noonu Atoll</div>
+                <div class="space-y-1">
+                  <div onclick="scrollToComponent('d2')" class="flex items-center gap-2 bg-white rounded-lg border border-[#eae3d7] px-2 py-1.5 cursor-pointer hover:border-[#4f46e5]/40 transition">
+                    <div class="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0"></div>
+                    <span class="text-[10px] text-[#23293a]">Sunset Dinner Experience</span>
+                  </div>
+                  <div onclick="scrollToComponent('d2')" class="flex items-center gap-2 bg-white rounded-lg border border-[#eae3d7] px-2 py-1.5 cursor-pointer hover:border-[#4f46e5]/40 transition">
+                    <div class="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0"></div>
+                    <span class="text-[10px] text-[#23293a]">Couples Spa Package</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="flex gap-2.5">
+              <div class="flex flex-col items-center w-5">
+                <div class="w-5 h-5 rounded-md bg-gray-100 flex items-center justify-center shrink-0"><span class="text-gray-500 text-[8px] font-bold">3</span></div>
+                <div class="w-px flex-1 bg-[#eae3d7] mt-1"></div>
+              </div>
+              <div class="flex-1 pb-2">
+                <div class="text-[10px] font-semibold text-[#23293a] mb-1">Mon, Mar 17 · Noonu Atoll</div>
+                <div class="space-y-1">
+                  <div onclick="scrollToComponent('d3')" class="flex items-center gap-2 bg-white rounded-lg border border-[#eae3d7] px-2 py-1.5 cursor-pointer hover:border-[#4f46e5]/40 transition">
+                    <div class="w-1.5 h-1.5 rounded-full bg-gray-300 shrink-0"></div>
+                    <span class="text-[10px] text-[#23293a]">Private Snorkelling Safari</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            
+            <div class="flex gap-2.5">
+              <div class="flex flex-col items-center w-5">
+                <div class="w-5 h-5 rounded-md bg-gray-100 flex items-center justify-center shrink-0"><span class="text-gray-400 text-[7px] font-bold">4–7</span></div>
+              </div>
+              <div class="flex-1 pb-1">
+                <div class="text-[10px] text-gray-400">Days 4–7 · Mar 18–22 · 8 more components</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="mx-4 mb-1.5" id="hl-days-section">
+        <div id="d1" class="w-full flex items-center gap-2.5 py-2.5 border-b border-[#eae3d7]" data-city="Malé">
+          <div class="w-7 h-7 rounded-full bg-[#23293a] flex items-center justify-center shrink-0">
+            <span class="text-white text-[10px] font-bold">1</span>
+          </div>
+          <div>
+            <div class="text-[13px] font-semibold text-[#23293a]">Day 1 — Sat, Mar 15</div>
+            <div class="text-[9px] text-gray-400">Arrival · 3 components</div>
+          </div>
+        </div>
+
+        <div id="d1-body" class="pt-2 space-y-2.5">
+
+          
+          <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#eae3d7]">
+            <div class="px-4 pt-3 pb-2 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 tracking-wide">✈ FLIGHT</span>
+                <span class="text-[9px] text-gray-400">1 option</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="window.location.href='s3-comment-sheet.html?mode=component&comp=flight'" class="relative flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100 transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="#9ca3af" stroke-width="1.8"/></svg>
+                  <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-[#4f46e5] rounded-full flex items-center justify-center text-[7px] text-white font-bold">1</span>
+                </button>
+                <span class="comp-badge text-[9px] font-semibold px-2 py-0.5 rounded-full" data-comp="flight">Ready for approval</span>
+              </div>
+            </div>
+            <div class="px-4 pb-3">
+              <div class="text-[13px] font-semibold text-[#23293a]">SYD → MLE via Singapore</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">Singapore Airlines · Business Class · 14h 20m total</div>
+              <div class="text-[11px] text-gray-400">Departs 10:30 AM · Arrives 11:50 PM+1</div>
+              <div class="conf-row hidden mt-2 flex items-center gap-1.5 bg-[#12B28C]/8 rounded-lg px-2.5 py-1.5 border border-[#12B28C]/15">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 12L11 14L15 10M21 12A9 9 0 1 1 3 12A9 9 0 0 1 21 12Z" stroke="#12B28C" stroke-width="2" stroke-linecap="round"/></svg>
+                <span class="text-[10px] font-medium text-[#12B28C]">Conf: SQ 7742918</span>
+              </div>
+            </div>
+            <div id="flight-actions" class="px-4 pb-4 flex gap-2">
+              <button onclick="handleDecision('flight','declined')" class="flex-1 py-2 rounded-xl border border-gray-200 text-[12px] font-medium text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors">Decline</button>
+              <button onclick="handleDecision('flight','request-changes')" class="flex-1 py-2 rounded-xl border border-[#4f46e5]/30 text-[12px] font-medium text-[#4f46e5] hover:bg-[#4f46e5]/5 transition-colors">Changes</button>
+              <button onclick="handleDecision('flight','approved')" class="flex-1 py-2 rounded-xl text-[12px] font-semibold text-white transition-colors" style="background:#12B28C">Approve</button>
+            </div>
+          </div>
+
+          
+          <div id="hl-hotel-carousel" class="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#eae3d7]">
+            <div class="px-4 pt-3 pb-2 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 tracking-wide">🏨 HOTEL</span>
+                <span class="text-[9px] text-gray-400">2 options</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="window.location.href='s3-comment-sheet.html?mode=component&comp=hotel'" class="relative flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100 transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="#9ca3af" stroke-width="1.8"/></svg>
+                  <span class="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-[#4f46e5] rounded-full flex items-center justify-center text-[7px] text-white font-bold">3</span>
+                </button>
+                <span id="hotel-opt-label" class="text-[9px] font-semibold text-[#4f46e5]">OPT A of 2</span>
+              </div>
+            </div>
+
+            
+            <div class="relative px-4 overflow-hidden">
+              <div id="hotel-track" class="flex transition-transform duration-300" style="width:200%">
+
+                
+                <div style="width:50%" class="pr-2">
+                  <div class="rounded-xl overflow-hidden border border-[#eae3d7]">
+                    <div class="h-24 relative">
+                      <div class="absolute inset-0" style="background:linear-gradient(135deg,#1a4a6b,#2d7daa)"></div>
+                      <span class="absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#9c7956]/90 text-white">OPT A</span>
+                    </div>
+                    <div class="p-2.5">
+                      <div class="text-[12px] font-semibold text-[#23293a]">Soneva Jani</div>
+                      <div class="text-[10px] text-gray-400">Noonu Atoll · Overwater Villa</div>
+                      <div class="text-[10px] text-gray-400">7 nts · from $4,200/nt</div>
+                      <div class="conf-row hidden mt-1.5 flex items-center gap-1 bg-[#12B28C]/8 rounded px-2 py-1 border border-[#12B28C]/15">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M9 12L11 14L15 10M21 12A9 9 0 1 1 3 12A9 9 0 0 1 21 12Z" stroke="#12B28C" stroke-width="2" stroke-linecap="round"/></svg>
+                        <span class="text-[9px] font-medium text-[#12B28C]">Conf: SJ-HM-88412</span>
+                      </div>
+                      <button onclick="window.location.href='s2-detail-view.html?opt=A'" class="mt-1.5 text-[10px] font-semibold text-[#4f46e5]">View Details →</button>
+                    </div>
+                  </div>
+                  <div id="hotel-a-actions" class="mt-2 flex gap-2">
+                    <button onclick="handleOption('hotel','A','declined')" class="flex-1 py-1.5 rounded-xl border border-gray-200 text-[11px] font-medium text-gray-600 hover:bg-red-50 hover:border-red-200 transition-colors">Decline</button>
+                    <button onclick="handleOption('hotel','A','request-changes')" class="flex-1 py-1.5 rounded-xl border border-[#4f46e5]/30 text-[11px] font-medium text-[#4f46e5] hover:bg-[#4f46e5]/5 transition-colors">Changes</button>
+                    <button onclick="handleOption('hotel','A','approved')" class="flex-1 py-1.5 rounded-xl text-[11px] font-semibold text-white transition-colors" style="background:#12B28C">Approve</button>
+                  </div>
+                </div>
+
+                
+                <div style="width:50%" class="pl-2">
+                  <div class="rounded-xl overflow-hidden border border-[#eae3d7]">
+                    <div class="h-24 relative">
+                      <div class="absolute inset-0" style="background:linear-gradient(135deg,#5b2a82,#9b6fc8)"></div>
+                      <span class="absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#9c7956]/90 text-white">OPT B</span>
+                    </div>
+                    <div class="p-2.5">
+                      <div class="text-[12px] font-semibold text-[#23293a]">Six Senses Laamu</div>
+                      <div class="text-[10px] text-gray-400">Laamu Atoll · Lagoon Villa</div>
+                      <div class="text-[10px] text-gray-400">7 nts · from $3,100/nt</div>
+                      <div class="conf-row hidden mt-1.5 flex items-center gap-1 bg-[#12B28C]/8 rounded px-2 py-1 border border-[#12B28C]/15">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M9 12L11 14L15 10M21 12A9 9 0 1 1 3 12A9 9 0 0 1 21 12Z" stroke="#12B28C" stroke-width="2" stroke-linecap="round"/></svg>
+                        <span class="text-[9px] font-medium text-[#12B28C]">Conf: SS-LM-55209</span>
+                      </div>
+                      <button onclick="window.location.href='s2-detail-view.html?opt=B'" class="mt-1.5 text-[10px] font-semibold text-[#4f46e5]">View Details →</button>
+                    </div>
+                  </div>
+                  <div id="hotel-b-actions" class="mt-2 flex gap-2">
+                    <button onclick="handleOption('hotel','B','declined')" class="flex-1 py-1.5 rounded-xl border border-gray-200 text-[11px] font-medium text-gray-600 hover:bg-red-50 hover:border-red-200 transition-colors">Decline</button>
+                    <button onclick="handleOption('hotel','B','request-changes')" class="flex-1 py-1.5 rounded-xl border border-[#4f46e5]/30 text-[11px] font-medium text-[#4f46e5] hover:bg-[#4f46e5]/5 transition-colors">Changes</button>
+                    <button onclick="handleOption('hotel','B','approved')" class="flex-1 py-1.5 rounded-xl text-[11px] font-semibold text-white transition-colors" style="background:#12B28C">Approve</button>
+                  </div>
+                </div>
+
+              </div>
+
+              
+              <button id="hotel-prev" onclick="slideHotel(-1)" class="absolute left-5 top-12 bg-white rounded-full shadow-md p-1 border border-gray-100 hidden">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="#23293a" stroke-width="2.5" stroke-linecap="round"/></svg>
+              </button>
+              <button id="hotel-next" onclick="slideHotel(1)" class="absolute right-5 top-12 bg-white rounded-full shadow-md p-1 border border-gray-100">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="#23293a" stroke-width="2.5" stroke-linecap="round"/></svg>
+              </button>
+
+              
+              <div class="flex justify-center gap-1 py-2.5">
+                <div id="hotel-dot0" class="h-1.5 w-5 rounded-full bg-[#4f46e5] transition-all"></div>
+                <div id="hotel-dot1" class="h-1.5 w-1.5 rounded-full bg-gray-300 transition-all"></div>
+              </div>
+            </div>
+          </div>
+
+          
+          <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#eae3d7]">
+            <div class="px-4 pt-3 pb-2 flex items-center justify-between">
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-700 tracking-wide">🚤 TRANSFER</span>
+              <div class="flex items-center gap-2">
+                <button onclick="window.location.href='s3-comment-sheet.html?mode=component&comp=transfer'" class="relative flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100 transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="#9ca3af" stroke-width="1.8"/></svg>
+                </button>
+                <span class="comp-badge text-[9px] font-semibold px-2 py-0.5 rounded-full" data-comp="transfer">Confirmed</span>
+              </div>
+            </div>
+            <div class="px-4 pb-3.5">
+              <div class="text-[13px] font-semibold text-[#23293a]">Speedboat Transfer</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">MLE Airport → Resort · ~45 min</div>
+              <div class="conf-row hidden mt-2 flex items-center gap-1.5 bg-[#12B28C]/8 rounded-lg px-2.5 py-1.5 border border-[#12B28C]/15">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 12L11 14L15 10M21 12A9 9 0 1 1 3 12A9 9 0 0 1 21 12Z" stroke="#12B28C" stroke-width="2" stroke-linecap="round"/></svg>
+                <span class="text-[10px] font-medium text-[#12B28C]">Conf: TRF-20260315-A</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      
+      <div class="mx-4 mb-1.5">
+        <div id="d2" class="w-full flex items-center gap-2.5 py-2.5 border-b border-[#eae3d7]" data-city="Noonu Atoll">
+          <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+            <span class="text-gray-500 text-[10px] font-bold">2</span>
+          </div>
+          <div>
+            <div class="text-[13px] font-semibold text-[#23293a]">Day 2 — Sun, Mar 16</div>
+            <div class="text-[9px] text-gray-400">At Resort · 2 components</div>
+          </div>
+        </div>
+        <div id="d2-body" class="pt-2 space-y-2.5">
+          <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#eae3d7]">
+            <div class="px-4 pt-3 pb-2 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-pink-100 text-pink-700">🍽 DINING</span>
+                <span class="text-[9px] text-gray-400">2 options</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="window.location.href='s3-comment-sheet.html?mode=component&comp=dining'" class="relative flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100 transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="#9ca3af" stroke-width="1.8"/></svg>
+                </button>
+                <span class="comp-badge text-[9px] font-semibold px-2 py-0.5 rounded-full" data-comp="dining">Ready for approval</span>
+              </div>
+            </div>
+            <div class="px-4 pb-3">
+              <div class="text-[13px] font-semibold text-[#23293a]">Sunset Dinner Experience</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">Over-water dining · 7:00 PM</div>
+              <div class="conf-row hidden mt-2 flex items-center gap-1.5 bg-[#12B28C]/8 rounded-lg px-2.5 py-1.5 border border-[#12B28C]/15">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 12L11 14L15 10M21 12A9 9 0 1 1 3 12A9 9 0 0 1 21 12Z" stroke="#12B28C" stroke-width="2" stroke-linecap="round"/></svg>
+                <span class="text-[10px] font-medium text-[#12B28C]">Conf: DIN-SJ-6891</span>
+              </div>
+            </div>
+            <div class="px-4 pb-4 flex gap-2 actions-group" data-comp="dining">
+              <button class="flex-1 py-2 rounded-xl border border-gray-200 text-[12px] font-medium text-gray-600">Decline</button>
+              <button class="flex-1 py-2 rounded-xl border border-[#4f46e5]/30 text-[12px] font-medium text-[#4f46e5]">Changes</button>
+              <button class="flex-1 py-2 rounded-xl text-[12px] font-semibold text-white" style="background:#12B28C">Approve</button>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#eae3d7]">
+            <div class="px-4 pt-3 pb-2 flex items-center justify-between">
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-700">🧖 SPA</span>
+              <div class="flex items-center gap-2">
+                <button onclick="window.location.href='s3-comment-sheet.html?mode=component&comp=spa'" class="relative flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100 transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="#9ca3af" stroke-width="1.8"/></svg>
+                </button>
+                <span class="comp-badge text-[9px] font-semibold px-2 py-0.5 rounded-full" data-comp="spa">Working on it</span>
+              </div>
+            </div>
+            <div class="px-4 pb-3">
+              <div class="text-[13px] font-semibold text-[#23293a]">Couples Spa Package</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">90 min · Overwater spa pavilion</div>
+              <div class="conf-row hidden mt-2 flex items-center gap-1.5 bg-[#12B28C]/8 rounded-lg px-2.5 py-1.5 border border-[#12B28C]/15">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 12L11 14L15 10M21 12A9 9 0 1 1 3 12A9 9 0 0 1 21 12Z" stroke="#12B28C" stroke-width="2" stroke-linecap="round"/></svg>
+                <span class="text-[10px] font-medium text-[#12B28C]">Conf: SPA-SJ-2204</span>
+              </div>
+            </div>
+            <div class="px-4 pb-4 flex gap-2 actions-group" data-comp="spa">
+              <button class="flex-1 py-2 rounded-xl border border-gray-200 text-[12px] font-medium text-gray-600">Decline</button>
+              <button class="flex-1 py-2 rounded-xl border border-[#4f46e5]/30 text-[12px] font-medium text-[#4f46e5]">Changes</button>
+              <button class="flex-1 py-2 rounded-xl text-[12px] font-semibold text-white" style="background:#12B28C">Approve</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="mx-4 mb-1.5">
+        <div id="d3" class="w-full flex items-center gap-2.5 py-2.5 border-b border-[#eae3d7]" data-city="Noonu Atoll">
+          <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+            <span class="text-gray-500 text-[10px] font-bold">3</span>
+          </div>
+          <div>
+            <div class="text-[13px] font-semibold text-[#23293a]">Day 3 — Mon, Mar 17</div>
+            <div class="text-[9px] text-gray-400">Excursions · 1 component</div>
+          </div>
+        </div>
+        <div id="d3-body" class="pt-2 space-y-2.5">
+          <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#eae3d7]">
+            <div class="px-4 pt-3 pb-2 flex items-center justify-between">
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">🤿 ACTIVITY</span>
+              <div class="flex items-center gap-2">
+                <button onclick="window.location.href='s3-comment-sheet.html?mode=component&comp=activity'" class="relative flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100 transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="#9ca3af" stroke-width="1.8"/></svg>
+                </button>
+                <span class="comp-badge text-[9px] font-semibold px-2 py-0.5 rounded-full" data-comp="activity">On hold</span>
+              </div>
+            </div>
+            <div class="px-4 pb-3">
+              <div class="text-[13px] font-semibold text-[#23293a]">Private Snorkelling Safari</div>
+              <div class="text-[11px] text-gray-400 mt-0.5">Morning · 3h · All equipment included</div>
+              <div class="conf-row hidden mt-2 flex items-center gap-1.5 bg-[#12B28C]/8 rounded-lg px-2.5 py-1.5 border border-[#12B28C]/15">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 12L11 14L15 10M21 12A9 9 0 1 1 3 12A9 9 0 0 1 21 12Z" stroke="#12B28C" stroke-width="2" stroke-linecap="round"/></svg>
+                <span class="text-[10px] font-medium text-[#12B28C]">Conf: ACT-SNK-7103</span>
+              </div>
+            </div>
+            <div class="px-4 pb-4 flex gap-2 actions-group" data-comp="activity">
+              <button class="flex-1 py-2 rounded-xl border border-gray-200 text-[12px] font-medium text-gray-600">Decline</button>
+              <button class="flex-1 py-2 rounded-xl border border-[#4f46e5]/30 text-[12px] font-medium text-[#4f46e5]">Changes</button>
+              <button class="flex-1 py-2 rounded-xl text-[12px] font-semibold text-white" style="background:#12B28C">Approve</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="mx-4 mb-4">
+        <div class="flex items-center justify-between mb-2.5">
+          <div class="text-[10px] font-semibold tracking-[0.15em] text-gray-400 uppercase">To Be Scheduled</div>
+          <span class="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-[#4f46e5]/10 text-[#4f46e5]">2 items</span>
+        </div>
+        <div class="space-y-2">
+          <div class="bg-white rounded-2xl border border-[#eae3d7] px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style="background:#9c795618"><span class="text-[12px]">&#127881;</span></div>
+              <div>
+                <div class="text-[12px] font-semibold text-[#23293a]">Private Beach Dinner</div>
+                <div class="text-[10px] text-gray-400">Dining · TBD · $450pp</div>
+              </div>
+            </div>
+            <span class="text-[8px] font-semibold px-2 py-0.5 rounded-full comp-badge" style="background:#9c795615; color:#9c7956; border:1px solid #9c795630">Working on it</span>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#eae3d7] px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style="background:#12B28C18"><span class="text-[12px]">&#128704;</span></div>
+              <div>
+                <div class="text-[12px] font-semibold text-[#23293a]">Sunset Dolphin Cruise</div>
+                <div class="text-[10px] text-gray-400">Activity · TBD · Complimentary</div>
+              </div>
+            </div>
+            <span class="text-[8px] font-semibold px-2 py-0.5 rounded-full comp-badge" style="background:#9c795615; color:#9c7956; border:1px solid #9c795630">Working on it</span>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="mx-4 mb-4" id="hl-tips-section">
+        <div class="text-[10px] font-semibold tracking-[0.15em] text-gray-400 uppercase mb-2.5">Insider Tips</div>
+        <div class="space-y-2" id="insider-tips">
+          <div class="bg-white rounded-2xl border border-[#eae3d7] overflow-hidden">
+            <button onclick="toggleTip(this)" class="w-full flex items-center justify-between px-4 py-3 text-left">
+              <div class="flex items-center gap-2.5">
+                <span class="text-[14px]">&#127758;</span>
+                <span class="text-[12px] font-semibold text-[#23293a]">Getting There</span>
+              </div>
+              <svg class="tip-chevron transition-transform" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9L12 15L18 9" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="tip-content hidden px-4 pb-3">
+              <p class="text-[11px] text-gray-600 leading-relaxed">The speedboat from Male to Soneva Jani takes about 40 minutes. Request the sunset transfer for an incredible arrival experience. Pack a change of clothes in your carry-on — luggage sometimes arrives on a later boat.</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#eae3d7] overflow-hidden">
+            <button onclick="toggleTip(this)" class="w-full flex items-center justify-between px-4 py-3 text-left">
+              <div class="flex items-center gap-2.5">
+                <span class="text-[14px]">&#127860;</span>
+                <span class="text-[12px] font-semibold text-[#23293a]">Food & Drink</span>
+              </div>
+              <svg class="tip-chevron transition-transform" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9L12 15L18 9" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="tip-content hidden px-4 pb-3">
+              <p class="text-[11px] text-gray-600 leading-relaxed">Book the Crab Shack for at least one dinner — it's on its own island and only seats 10. The chocolate and ice cream rooms are complimentary and open all day. Full board covers everything except premium wines and spirits.</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#eae3d7] overflow-hidden">
+            <button onclick="toggleTip(this)" class="w-full flex items-center justify-between px-4 py-3 text-left">
+              <div class="flex items-center gap-2.5">
+                <span class="text-[14px]">&#128171;</span>
+                <span class="text-[12px] font-semibold text-[#23293a]">Things to Know</span>
+              </div>
+              <svg class="tip-chevron transition-transform" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9L12 15L18 9" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="tip-content hidden px-4 pb-3">
+              <p class="text-[11px] text-gray-600 leading-relaxed">Soneva is a no-shoes resort — you'll be given a bag for your shoes at check-in. Wi-Fi is excellent throughout. The "no news" policy means no TVs, but they're available on request. Bring reef-safe sunscreen.</p>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl border border-[#eae3d7] overflow-hidden">
+            <button onclick="toggleTip(this)" class="w-full flex items-center justify-between px-4 py-3 text-left">
+              <div class="flex items-center gap-2.5">
+                <span class="text-[14px]">&#11088;</span>
+                <span class="text-[12px] font-semibold text-[#23293a]">Don't Miss</span>
+              </div>
+              <svg class="tip-chevron transition-transform" width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M6 9L12 15L18 9" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg>
+            </button>
+            <div class="tip-content hidden px-4 pb-3">
+              <p class="text-[11px] text-gray-600 leading-relaxed">The observatory has one of the largest telescopes in the southern hemisphere — book a stargazing session on a clear night. The Cinema Paradiso outdoor cinema is magical. Ask about the sandbank picnic — it's unforgettable.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      
+      <div class="mx-4 mb-4">
+        <div class="py-2.5 border-b border-[#eae3d7] flex items-center gap-2.5 opacity-40">
+          <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center shrink-0"><span class="text-gray-400 text-[10px] font-bold">4–7</span></div>
+          <div class="text-[13px] font-semibold text-[#23293a]">Days 4–7 · Mar 18–22</div>
+        </div>
+        <div class="text-center text-[10px] text-gray-400 py-2">More days loading…</div>
+      </div>
+
+    </div>
+
+    
+    <div class="absolute bottom-20 left-1/2 -translate-x-1/2 z-20" id="dayJumpPill">
+      <button onclick="window.location.href='s5-day-picker.html?mode=navigate'" class="flex items-center gap-1.5 bg-[#23293a]/90 backdrop-blur rounded-full pl-3 pr-2.5 py-1.5 shadow-lg hover:bg-[#23293a] transition-colors">
+        <span id="dayJumpText" class="text-[11px] font-semibold text-white">Day 1 of 7 · Malé</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M6 9L12 15L18 9" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    
+    <div class="bg-white border-t border-[#eae3d7] px-6 py-3 flex justify-around items-center shrink-0">
+      <button class="flex flex-col items-center gap-0.5">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="3" width="7.5" height="7.5" rx="1.5" stroke="#4f46e5" stroke-width="1.8"/>
+          <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5" stroke="#23293a" stroke-width="1.8" opacity="0.35"/>
+          <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5" stroke="#23293a" stroke-width="1.8" opacity="0.35"/>
+          <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5" stroke="#23293a" stroke-width="1.8" opacity="0.35"/>
+        </svg>
+        <span class="text-[8px] font-semibold text-[#4f46e5]">Trips</span>
+      </button>
+      <button class="flex flex-col items-center gap-0.5">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="3.5" stroke="#23293a" stroke-width="1.8" opacity="0.35"/><path d="M4 20C4 17.8 7.6 16 12 16C16.4 16 20 17.8 20 20" stroke="#23293a" stroke-width="1.8" stroke-linecap="round" opacity="0.35"/></svg>
+        <span class="text-[8px] text-gray-400">Profile</span>
+      </button>
+      <button class="flex flex-col items-center gap-0.5">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="#23293a" stroke-width="1.8" opacity="0.35"/></svg>
+        <span class="text-[8px] text-gray-400">Rewards</span>
+      </button>
+      
+    </div>
+
+  </div>
+
+    
+
+  </div>
+
+  <script>
+    const PHASES = {
+      'not-started':        { label:'Getting Started',          color:'#9ca3af', bannerMsg:'Your advisor will reach out soon to begin planning your trip.' },
+      'trip-identified':    { label:'Getting Started',          color:'#9ca3af', bannerMsg:'Great news — your trip idea has been confirmed. Your advisor is researching options.' },
+      'outline':            { label:'Planning Your Trip',       color:'#9c7956', bannerMsg:'Your advisor is actively building your itinerary. Check back soon for updates.' },
+      'itinerary-review':   { label:'Ready for Your Review',   color:'#4f46e5', bannerMsg:'Your advisor has shared an itinerary for review. Please approve or decline each option — they\'re standing by.' },
+      'booking-in-progress':{ label:'Booking Underway',        color:'#f59e0b', bannerMsg:'Your advisor is booking your approved options. Confirmation details will appear here as they come in.' },
+      'booking-complete':   { label:'All Booked!',             color:'#12B28C', bannerMsg:'Everything is confirmed and booked. Travel documents will be shared closer to departure.' },
+      'on-trip':            { label:'Enjoy Your Trip!',        color:'#23293a', bannerMsg:'You\'re on your trip! Tap any component for real-time details and confirmation info.' },
+      'post-trip':          { label:'Welcome Back',            color:'#9c7956', bannerMsg:'We hope you had an incredible experience. We\'d love to hear how it went.' }
+    };
+
+    const CLIENT_STATUSES = {
+      'working-on-it':       { label:'Working on it',       bg:'#9c795615', text:'#9c7956', border:'#9c795630', showActions:false },
+      'need-your-input':     { label:'Need your input',     bg:'#4f46e515', text:'#4f46e5', border:'#4f46e530', showActions:true },
+      'ready-for-approval':  { label:'Ready for approval',  bg:'#4f46e515', text:'#4f46e5', border:'#4f46e530', showActions:true },
+      'on-hold':             { label:'On hold',             bg:'#9ca3af15', text:'#6b7280', border:'#9ca3af30', showActions:false },
+      'confirmed':           { label:'Confirmed',           bg:'#12B28C15', text:'#12B28C', border:'#12B28C30', showActions:false },
+      'booked':              { label:'Booked',              bg:'#12B28C15', text:'#12B28C', border:'#12B28C30', showActions:false }
+    };
+
+    // Per-component statuses (mixed defaults to demonstrate variety)
+    const componentStatuses = {
+      flight:   'ready-for-approval',
+      hotel:    'need-your-input',
+      transfer: 'confirmed',
+      dining:   'ready-for-approval',
+      spa:      'working-on-it',
+      activity: 'on-hold'
+    };
+
+    function setPhase(key) {
+      const p = PHASES[key];
+      // badge
+      const badge = document.getElementById('phase-badge');
+      badge.textContent = p.label;
+      badge.style.background = p.color;
+      // banner
+      const banner = document.getElementById('phase-banner');
+      const bannerText = document.getElementById('phase-banner-text');
+      bannerText.textContent = p.bannerMsg;
+      bannerText.style.color = p.color;
+      banner.style.background = p.color + '12';
+      banner.style.borderColor = p.color + '28';
+      // confirmation numbers — visible only in booking-complete, on-trip, post-trip
+      const showConf = ['booking-complete', 'on-trip', 'post-trip'].includes(key);
+      document.querySelectorAll('.conf-row').forEach(el => {
+        el.classList.toggle('hidden', !showConf);
+      });
+      // phase selector buttons
+      document.querySelectorAll('.pbtn').forEach(btn => {
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+        btn.className = 'pbtn px-3 py-1 text-xs rounded-full border border-gray-300 text-gray-600 font-medium transition-all';
+      });
+      const ab = document.getElementById('pbtn-' + key);
+      if (ab) { ab.style.background = p.color; ab.style.borderColor = p.color; ab.style.color = 'white'; }
+    }
+
+    // ── Apply Client-Facing Statuses to all component badges + action visibility ──
+    function applyAllStatuses() {
+      // Update badges
+      document.querySelectorAll('.comp-badge').forEach(badge => {
+        const comp = badge.dataset.comp;
+        const statusKey = componentStatuses[comp];
+        if (!statusKey) return;
+        const s = CLIENT_STATUSES[statusKey];
+        badge.textContent = s.label;
+        badge.style.background = s.bg;
+        badge.style.color = s.text;
+        badge.style.border = '1px solid ' + s.border;
+      });
+
+      // Update action visibility per component
+      // Flight, hotel (id-based)
+      ['flight-actions', 'hotel-a-actions', 'hotel-b-actions'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const comp = id.startsWith('hotel') ? 'hotel' : 'flight';
+        const s = CLIENT_STATUSES[componentStatuses[comp]];
+        el.style.display = s.showActions ? 'flex' : 'none';
+      });
+
+      // Dining, spa, activity (data-comp attribute on .actions-group)
+      document.querySelectorAll('.actions-group[data-comp]').forEach(el => {
+        const comp = el.dataset.comp;
+        const s = CLIENT_STATUSES[componentStatuses[comp]];
+        el.style.display = s.showActions ? 'flex' : 'none';
+      });
+
+      // Update hotel opt label color based on status
+      const hotelLabel = document.getElementById('hotel-opt-label');
+      if (hotelLabel) {
+        const hs = CLIENT_STATUSES[componentStatuses.hotel];
+        hotelLabel.style.color = hs.text;
+      }
+
+      // Highlight active status button
+      document.querySelectorAll('.sbtn').forEach(btn => {
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+        btn.className = 'sbtn px-2.5 py-1 text-[10px] rounded-full border border-gray-300 text-gray-600 font-medium transition-all';
+      });
+    }
+
+    function overrideAllStatuses(statusKey) {
+      Object.keys(componentStatuses).forEach(comp => {
+        componentStatuses[comp] = statusKey;
+      });
+      applyAllStatuses();
+      // Highlight the selected status button
+      const s = CLIENT_STATUSES[statusKey];
+      document.querySelectorAll('.sbtn').forEach(btn => {
+        if (btn.textContent.trim() === s.label) {
+          btn.style.background = s.text;
+          btn.style.borderColor = s.text;
+          btn.style.color = 'white';
+        }
+      });
+    }
+
+    function resetMixedStatuses() {
+      componentStatuses.flight = 'ready-for-approval';
+      componentStatuses.hotel = 'need-your-input';
+      componentStatuses.transfer = 'confirmed';
+      componentStatuses.dining = 'ready-for-approval';
+      componentStatuses.spa = 'working-on-it';
+      componentStatuses.activity = 'on-hold';
+      applyAllStatuses();
+    }
+
+    // ── At a Glance toggle ──
+    function toggleGlance() {
+      const body = document.getElementById('glance-body');
+      const chev = document.getElementById('glance-chev');
+      const hidden = body.classList.toggle('hidden');
+      chev.style.transform = hidden ? '' : 'rotate(180deg)';
+    }
+
+    // ── Insider Tips accordion ──
+    function toggleTip(btn) {
+      const content = btn.nextElementSibling;
+      const chevron = btn.querySelector('.tip-chevron');
+      const wasHidden = content.classList.toggle('hidden');
+      chevron.style.transform = wasHidden ? '' : 'rotate(180deg)';
+    }
+
+    // ── Scroll to component from At a Glance ──
+    function scrollToComponent(dayId) {
+      // collapse At a Glance, then scroll to the day
+      document.getElementById('glance-body').classList.add('hidden');
+      document.getElementById('glance-chev').style.transform = '';
+      const el = document.getElementById(dayId);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ── Decisions ──
+    function handleDecision(comp, decision) {
+      if (decision === 'request-changes') {
+        window.location.href = 's3-comment-sheet.html?mode=component&comp=' + comp + '&action=request-changes';
+        return;
+      }
+      const el = document.getElementById(comp + '-actions');
+      const badge = document.getElementById(comp + '-status-badge');
+      if (decision === 'approved') {
+        el.innerHTML = '<div style="background:#12B28C10;border:1px solid #12B28C30" class="w-full py-2 rounded-xl text-center text-[12px] font-semibold text-[#12B28C]">✓ Approved</div>';
+        if (badge) { badge.textContent = 'Approved'; badge.style.background = '#12B28C18'; badge.style.color = '#12B28C'; }
+      } else {
+        el.innerHTML = '<div class="w-full py-2 rounded-xl text-center text-[12px] font-semibold text-red-500 bg-red-50 border border-red-100">✗ Declined</div>';
+        if (badge) { badge.textContent = 'Declined'; badge.style.background = '#fef2f2'; badge.style.color = '#ef4444'; }
+      }
+      // open feedback modal
+      window.location.href = 's4-decision-confirm.html?comp=' + comp + '&decision=' + decision;
+    }
+
+    function handleOption(comp, opt, decision) {
+      if (decision === 'request-changes') {
+        window.location.href = 's3-comment-sheet.html?mode=component&comp=' + comp + '-' + opt.toLowerCase() + '&action=request-changes';
+        return;
+      }
+      const el = document.getElementById(comp + '-' + opt.toLowerCase() + '-actions');
+      if (decision === 'approved') {
+        el.innerHTML = '<div style="background:#12B28C10;border:1px solid #12B28C30" class="w-full py-1.5 rounded-xl text-center text-[11px] font-semibold text-[#12B28C]">✓ Approved</div>';
+      } else {
+        el.innerHTML = '<div class="w-full py-1.5 rounded-xl text-center text-[11px] font-semibold text-red-500 bg-red-50 border border-red-100">✗ Declined</div>';
+      }
+    }
+
+    // ── Hotel carousel ──
+    let hotelIdx = 0;
+    function slideHotel(dir) {
+      hotelIdx = Math.max(0, Math.min(1, hotelIdx + dir));
+      document.getElementById('hotel-track').style.transform = 'translateX(-' + (hotelIdx * 50) + '%)';
+      document.getElementById('hotel-dot0').className = hotelIdx === 0 ? 'h-1.5 w-5 rounded-full bg-[#4f46e5] transition-all' : 'h-1.5 w-1.5 rounded-full bg-gray-300 transition-all';
+      document.getElementById('hotel-dot1').className = hotelIdx === 1 ? 'h-1.5 w-5 rounded-full bg-[#4f46e5] transition-all' : 'h-1.5 w-1.5 rounded-full bg-gray-300 transition-all';
+      document.getElementById('hotel-opt-label').textContent = 'OPT ' + (hotelIdx === 0 ? 'A' : 'B') + ' of 2';
+      document.getElementById('hotel-prev').classList.toggle('hidden', hotelIdx === 0);
+      document.getElementById('hotel-next').classList.toggle('hidden', hotelIdx === 1);
+    }
+
+
+    // ── Scroll spy: update "Day X of Y · City" pill on scroll ──
+    (function() {
+      const scroller = document.getElementById('trip-scroll');
+      if (!scroller) return;
+      const dayEls = [
+        { id:'d1', num:1 },
+        { id:'d2', num:2 },
+        { id:'d3', num:3 }
+      ];
+      const totalDays = 7; // full trip length
+      const pillText = document.getElementById('dayJumpText');
+      scroller.addEventListener('scroll', function() {
+        let current = dayEls[0];
+        dayEls.forEach(d => {
+          const el = document.getElementById(d.id);
+          if (el && el.getBoundingClientRect().top < 200) current = d;
+        });
+        const city = document.getElementById(current.id)?.dataset.city || '';
+        if (pillText) pillText.textContent = 'Day ' + current.num + ' of ' + totalDays + ' · ' + city;
+      });
+    })();
+
+    const HIGHLIGHT_MAP = {
+      'glance':       ['#hl-glance-section'],
+      'days':         ['#hl-days-section', '#d2', '#d3'],
+      'actions':      ['#flight-actions', '#hotel-a-actions', '#hotel-b-actions', '.actions-group[data-comp]'],
+      'carousel':     ['#hl-hotel-carousel'],
+      'comments':     ['button[onclick*="comment-sheet"]'],
+      'confrows':     ['.conf-row'],
+      'rate':         ['#phase-banner'],
+      'detail':       ['a[href*="s2-detail-view"], button[onclick*="s2-detail-view"]'],
+      'photos':       ['#hl-hotel-carousel .h-24'],
+      'commentbadges':['button[onclick*="comment-sheet"] .absolute'],
+      'tips':         ['#hl-tips-section'],
+      'compbadges':   ['.comp-badge'],
+      'phasebanner':  ['#phase-banner']
+    };
+
+    function toggleHighlight(checkbox) {
+      const key = checkbox.dataset.hl;
+      if (!key || !HIGHLIGHT_MAP[key]) return;
+      const selectors = HIGHLIGHT_MAP[key];
+      selectors.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => {
+          if (checkbox.checked) {
+            el.style.position = el.style.position || 'relative';
+            if (!el.style.position || el.style.position === 'static') el.style.position = 'relative';
+            el.classList.add('hl-highlight');
+          } else {
+            // Only remove if no other checked checkbox targets this element
+            const stillHighlighted = Array.from(document.querySelectorAll('.hl-check:checked')).some(cb => {
+              const cbKey = cb.dataset.hl;
+              if (!cbKey || cbKey === key) return false;
+              const cbSels = HIGHLIGHT_MAP[cbKey] || [];
+              return cbSels.some(s => {
+                try { return el.matches(s); } catch(e) { return false; }
+              });
+            });
+            if (!stillHighlighted) el.classList.remove('hl-highlight');
+          }
+        });
+      });
+    }
+
+    function updateCount() {
+      const total = document.querySelectorAll('.hl-check').length;
+      const checked = document.querySelectorAll('.hl-check:checked').length;
+      const counter = document.getElementById('hl-counter');
+      if (!counter) return;
+      counter.textContent = checked + ' / ' + total;
+      counter.style.color = checked === total ? '#12B28C' : '#9ca3af';
+    }
+
+    const urlPhase = new URLSearchParams(window.location.search).get('phase');
+    setPhase((urlPhase && PHASES[urlPhase]) ? urlPhase : 'itinerary-review');
+    applyAllStatuses();
+    updateCount();
+  </script>
+
+</body>
+</html>

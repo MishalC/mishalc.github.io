@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deals — Mobile app prototype</title>
+<link rel="stylesheet" href="../_shared/fonts.css">
+<link rel="stylesheet" href="tailwind.css">
+  <style>
+    body { font-family: 'Hanken Grotesk', sans-serif; }
+    .phone {
+      width: 375px; height: 812px; background: #0D0D0D; border-radius: 40px;
+      overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      position: relative; border: 8px solid #2E2E2E; flex-shrink: 0;
+    }
+    .phone-content { height: calc(100% - 44px - 68px); overflow-y: auto; overflow-x: hidden; position: relative; background: #0D0D0D; }
+    .phone-content::-webkit-scrollbar { display: none; }
+    .screen { display: none; height: 100%; }
+    .screen.active { display: flex; flex-direction: column; }
+
+    /* Status bar */
+    .status-bar {
+      height: 44px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; font-size: 14px; font-weight: 600; background: #0D0D0D; flex-shrink: 0;
+      color: #F5F0E8;
+    }
+    /* Tab bar */
+    .tab-bar {
+      height: 68px; display: flex; align-items: center; justify-content: space-around;
+      background: rgba(13,13,13,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0; padding-bottom: 8px;
+    }
+    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10px; color: #4A4A4A; cursor: pointer; }
+    .tab-item.active { color: #818cf8; }
+    .tab-item svg { width: 22px; height: 22px; }
+
+    /* Swipe card styles */
+    .swipe-container { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .deal-card {
+      position: absolute; width: 355px; background: rgba(255,255,255,0.06); border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3); cursor: grab; user-select: none;
+      transition: transform 0.1s ease, box-shadow 0.2s ease; touch-action: none;
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .deal-card.animating { transition: transform 0.4s ease, opacity 0.4s ease; }
+    .deal-card:active { cursor: grabbing; }
+    .swipe-indicator {
+      position: absolute; top: 20px; padding: 8px 20px; border-radius: 8px; font-size: 18px;
+      font-weight: 700; letter-spacing: 2px; border: 3px solid; opacity: 0;
+      transition: opacity 0.1s ease; pointer-events: none; z-index: 10;
+    }
+    .swipe-like { right: 20px; color: #818cf8; border-color: #818cf8; transform: rotate(15deg); }
+    .swipe-skip { left: 20px; color: #E54D4D; border-color: #E54D4D; transform: rotate(-15deg); }
+
+    /* Onboarding */
+    .onboard-option {
+      border: 2px solid #2E2E2E; border-radius: 12px; padding: 12px 16px; cursor: pointer;
+      transition: all 0.2s ease; font-size: 14px; background: #1A1A1A; color: #F5F0E8;
+    }
+    .onboard-option:hover { border-color: #818cf8; background: rgba(129,140,248,0.08); }
+    .onboard-option.selected { border-color: #818cf8; background: rgba(129,140,248,0.1); }
+    .onboard-chip {
+      display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 20px;
+      border: 2px solid #2E2E2E; font-size: 13px; cursor: pointer; transition: all 0.2s ease;
+      background: #1A1A1A; color: #F5F0E8;
+    }
+    .onboard-chip:hover, .onboard-chip.selected { border-color: #818cf8; background: rgba(129,140,248,0.1); color: #818cf8; }
+
+    /* Progress dots */
+    .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: #4A4A4A; transition: all 0.3s; }
+    .progress-dot.active { background: #818cf8; width: 24px; border-radius: 4px; }
+    .progress-dot.done { background: #12B28C; }
+
+    /* Score ring */
+    .match-ring {
+      width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-weight: 700; font-size: 14px;
+    }
+
+    /* Deal history item */
+    .history-item { border-bottom: 1px solid #2E2E2E; padding: 14px 0; cursor: pointer; }
+    .history-item:last-child { border-bottom: none; }
+    .history-item:hover { background: rgba(255,255,255,0.03); }
+
+    /* Toggle switch */
+    .toggle { width: 44px; height: 24px; border-radius: 12px; background: #2E2E2E; position: relative; cursor: pointer; transition: background 0.3s; }
+    .toggle.on { background: #818cf8; }
+    .toggle::after {
+      content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px;
+      border-radius: 50%; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.3s;
+    }
+    .toggle.on::after { transform: translateX(20px); }
+
+    /* Destination image placeholders */
+    .dest-img {
+      position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dest-img::before {
+      content: ''; position: absolute; inset: 0; opacity: 0.12;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5 L55 50 L5 50 Z' fill='white' opacity='0.5'/%3E%3C/svg%3E");
+      background-size: 80px 80px; background-position: center bottom;
+    }
+    .dest-img .photo-hint {
+      position: absolute; bottom: 12px; right: 12px;
+      width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+    }
+
+    /* Destination-specific gradients */
+    .dest-tokyo { background: linear-gradient(135deg, #f8b4c8 0%, #23293a 100%); }
+    .dest-london { background: linear-gradient(135deg, #5b7fa5 0%, #2d3a4a 100%); }
+    .dest-paris { background: linear-gradient(135deg, #d4a76a 0%, #4a3728 100%); }
+    .dest-bali { background: linear-gradient(135deg, #12B28C 0%, #0a5c49 100%); }
+    .dest-cancun { background: linear-gradient(135deg, #38bdf8 0%, #1e3a5f 100%); }
+    .dest-maldives { background: linear-gradient(135deg, #06b6d4 0%, #164e63 100%); }
+    .dest-tulum { background: linear-gradient(135deg, #84cc16 0%, #365314 100%); }
+    .dest-rome { background: linear-gradient(135deg, #c2956a 0%, #44322a 100%); }
+    .dest-santorini { background: linear-gradient(135deg, #60a5fa 0%, #1e3a5f 100%); }
+    .dest-dubai { background: linear-gradient(135deg, #f59e0b 0%, #78350f 100%); }
+    .dest-capetown { background: linear-gradient(135deg, #34d399 0%, #064e3b 100%); }
+    .dest-sydney { background: linear-gradient(135deg, #818cf8 0%, #312e81 100%); }
+    .dest-default { background: linear-gradient(135deg, #9c7956 0%, #23293a 100%); }
+
+    /* Destination card grid for onboarding */
+    .dest-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    .dest-card {
+      position: relative; border-radius: 14px; overflow: hidden; cursor: pointer;
+      height: 90px; display: flex; align-items: flex-end; padding: 8px 10px;
+      border: 2.5px solid transparent; transition: all 0.2s ease;
+    }
+    .dest-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 60%);
+    }
+    .dest-card span {
+      position: relative; z-index: 1; color: white; font-size: 12px; font-weight: 600;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    }
+    .dest-card:hover { border-color: #818cf8; transform: scale(1.03); }
+    .dest-card.selected { border-color: #818cf8; box-shadow: 0 0 0 1px #818cf8; }
+    .dest-card.selected::after {
+      content: ''; position: absolute; top: 6px; right: 6px; width: 20px; height: 20px;
+      border-radius: 50%; background: #818cf8; z-index: 2;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z'/%3E%3C/svg%3E");
+      background-size: 14px; background-position: center; background-repeat: no-repeat;
+    }
+
+    /* Airline option with logo placeholder */
+    .airline-option {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 14px;
+      border: 2px solid #2E2E2E; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.2s ease;
+      background: #1A1A1A; color: #F5F0E8;
+    }
+    .airline-option:hover, .airline-option.selected { border-color: #818cf8; background: rgba(129,140,248,0.1); color: #818cf8; }
+    .airline-logo {
+      width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+      justify-content: center; font-size: 11px; font-weight: 700; color: white; flex-shrink: 0;
+    }
+
+    /* Filter chips for deals hub */
+    .filter-chip {
+      padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.08);
+      color: #8A8A8A; background: rgba(255,255,255,0.06); white-space: nowrap;
+    }
+    .filter-chip.active { background: #818cf8; color: #0D0D0D; border-color: #818cf8; }
+    .filter-chip:hover:not(.active) { border-color: #818cf8; color: #818cf8; }
+
+    /* History thumbnail */
+    .history-thumb {
+      width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: flex-end; justify-content: center;
+      padding-bottom: 4px; position: relative; overflow: hidden;
+    }
+    .history-thumb::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0) 60%);
+    }
+    .history-thumb span {
+      position: relative; z-index: 1; font-size: 10px; font-weight: 700; color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    /* Deal type badges */
+    .deal-type-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 6px; font-size: 10px;
+      font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .deal-type-sweet-spot { background: rgba(129,140,248,0.15); color: #818cf8; }
+    .deal-type-transfer-bonus { background: rgba(18,178,140,0.15); color: #12B28C; }
+    .deal-type-flash { background: rgba(229,77,77,0.15); color: #E54D4D; }
+    .deal-type-first-class { background: rgba(232,213,176,0.15); color: #c7d2fe; }
+    .deal-type-new-route { background: rgba(18,178,140,0.15); color: #12B28C; }
+    .deal-type-promo { background: rgba(129,140,248,0.15); color: #818cf8; }
+
+    /* Glass card */
+    .glass-card {
+      background: rgba(255,255,255,0.06); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 20px;
+    }
+
+    /* Empty state animation */
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .float-anim { animation: float 3s ease-in-out infinite; }
+    @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(1.8); opacity: 0; } }
+    .pulse-ring { animation: pulse-ring 2s ease-out infinite; }
+  </style>
+</head>
+<body class="min-h-screen font-body py-6" style="background:#111111;">
+<a href="/prototypes/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:8px 12px;border-radius:999px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px/1.3 'Hanken Grotesk',system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #0006">Prototype by Mishal Chowdhury · names and data replaced · back to portfolio</a>
+
+  <div class="flex items-start justify-center gap-5 px-4">
+
+    <!-- LEFT: Demo Controls -->
+    <div class="shrink-0" style="width:220px; position:sticky; top:24px;">
+      <div class="rounded-2xl shadow-lg px-4 py-3 mb-3" style="background:#1A1A1A;">
+        <span class="text-[10px] font-semibold tracking-widest uppercase block text-center mb-2" style="color:#c7d2fe;">SCREEN NAVIGATOR</span>
+        <div class="flex flex-col gap-1.5">
+          <button onclick="goScreen('onboarding')" class="screen-btn px-3 py-1.5 text-[11px] rounded-lg border font-medium transition-all text-left" style="background:#242424; border-color:#2E2E2E; color:#8A8A8A;">1. Onboarding Flow</button>
+          <button onclick="goScreen('deals-hub')" class="screen-btn px-3 py-1.5 text-[11px] rounded-lg border font-medium transition-all text-left active" style="background:#242424; border-color:#2E2E2E; color:#8A8A8A;">2. Deals Hub (Swipe)</button>
+          <button onclick="showDealDetail(0)" class="screen-btn px-3 py-1.5 text-[11px] rounded-lg border font-medium transition-all text-left" style="background:#242424; border-color:#2E2E2E; color:#8A8A8A;">3. Deal Detail</button>
+          <button onclick="goScreen('deal-history')" class="screen-btn px-3 py-1.5 text-[11px] rounded-lg border font-medium transition-all text-left" style="background:#242424; border-color:#2E2E2E; color:#8A8A8A;">4. Deal History</button>
+          <button onclick="goScreen('preferences')" class="screen-btn px-3 py-1.5 text-[11px] rounded-lg border font-medium transition-all text-left" style="background:#242424; border-color:#2E2E2E; color:#8A8A8A;">5. Preferences</button>
+          <button onclick="goScreen('empty-state')" class="screen-btn px-3 py-1.5 text-[11px] rounded-lg border font-medium transition-all text-left" style="background:#242424; border-color:#2E2E2E; color:#8A8A8A;">6. Empty State</button>
+        </div>
+      </div>
+      <div class="rounded-2xl shadow-lg px-4 py-3" style="background:#1A1A1A;">
+        <span class="text-[10px] font-semibold tracking-widest uppercase block text-center mb-2" style="color:#c7d2fe;">SWIPE INSTRUCTIONS</span>
+        <p class="text-[11px] leading-relaxed" style="color:#8A8A8A;">Drag deal cards left (skip) or right (like). Or use the buttons below the card. Tap a card to see full details.</p>
+      </div>
+    </div>
+
+    <!-- CENTER: Phone -->
+    <div class="phone" id="phone">
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span>9:41</span>
+        <div class="flex items-center gap-1">
+          <svg width="16" height="12" viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="1" fill="#818cf8"/><rect x="4.5" y="2" width="3" height="10" rx="1" fill="#818cf8"/><rect x="9" y="0" width="3" height="12" rx="1" fill="#818cf8"/><rect x="13.5" y="0" width="2.5" height="12" rx="1" fill="#4A4A4A"/></svg>
+          <svg width="24" height="12" viewBox="0 0 24 12"><rect x="0" y="0" width="22" height="12" rx="3" stroke="#818cf8" stroke-width="1.5" fill="none"/><rect x="2" y="2" width="16" height="8" rx="1.5" fill="#818cf8"/><rect x="23" y="4" width="1.5" height="4" rx="0.5" fill="#818cf8"/></svg>
+        </div>
+      </div>
+
+      <!-- Phone Content Area -->
+      <div class="phone-content" id="phoneContent">
+
+        <!-- SCREEN: ONBOARDING -->
+        <div class="screen" id="screen-onboarding">
+          <div class="flex-1 flex flex-col">
+            <div class="px-5 pt-6 pb-4">
+              <div class="flex items-center gap-2 mb-4" id="onboard-dots">
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+              </div>
+            </div>
+
+            <!-- Step 1: Home Airport -->
+            <div class="onboard-step active px-5 flex-1 flex flex-col" id="onboard-1">
+              <h2 class="text-xl font-bold mb-1 font-display" style="color:#F5F0E8;">Where do you usually fly from?</h2>
+              <p class="text-sm mb-5" style="color:#8A8A8A;">Select your home airport(s)</p>
+              <div class="space-y-2.5 flex-1">
+                <div class="onboard-option flex items-center gap-3" onclick="toggleOption(this)">
+                  <svg width="18" height="18" fill="none" stroke="#818cf8" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 19V5m0 0l-4 4m4-4l4 4"/><path d="M3 21h18"/></svg>
+                  <span class="font-medium" style="color:#F5F0E8;">SFO</span> <span style="color:#8A8A8A;">San Francisco</span>
+                </div>
+                <div class="onboard-option flex items-center gap-3" onclick="toggleOption(this)">
+                  <svg width="18" height="18" fill="none" stroke="#818cf8" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 19V5m0 0l-4 4m4-4l4 4"/><path d="M3 21h18"/></svg>
+                  <span class="font-medium" style="color:#F5F0E8;">LAX</span> <span style="color:#8A8A8A;">Los Angeles</span>
+                </div>
+                <div class="onboard-option flex items-center gap-3" onclick="toggleOption(this)">
+                  <svg width="18" height="18" fill="none" stroke="#818cf8" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 19V5m0 0l-4 4m4-4l4 4"/><path d="M3 21h18"/></svg>
+                  <span class="font-medium" style="color:#F5F0E8;">JFK</span> <span style="color:#8A8A8A;">New York JFK</span>
+                </div>
+                <div class="onboard-option flex items-center gap-3" onclick="toggleOption(this)">
+                  <svg width="18" height="18" fill="none" stroke="#818cf8" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 19V5m0 0l-4 4m4-4l4 4"/><path d="M3 21h18"/></svg>
+                  <span class="font-medium" style="color:#F5F0E8;">ORD</span> <span style="color:#8A8A8A;">Chicago O'Hare</span>
+                </div>
+                <div class="onboard-option flex items-center gap-3" onclick="toggleOption(this)">
+                  <svg width="18" height="18" fill="none" stroke="#818cf8" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 19V5m0 0l-4 4m4-4l4 4"/><path d="M3 21h18"/></svg>
+                  <span class="font-medium" style="color:#F5F0E8;">MIA</span> <span style="color:#8A8A8A;">Miami</span>
+                </div>
+                <div class="onboard-option flex items-center gap-3" onclick="toggleOption(this)">
+                  <svg width="18" height="18" fill="none" stroke="#818cf8" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 19V5m0 0l-4 4m4-4l4 4"/><path d="M3 21h18"/></svg>
+                  <span class="font-medium" style="color:#F5F0E8;">SEA</span> <span style="color:#8A8A8A;">Seattle</span>
+                </div>
+              </div>
+              <button onclick="nextOnboardStep(2)" class="w-full font-semibold py-3.5 rounded-xl mt-4 mb-4 text-sm" style="background:#818cf8; color:#0D0D0D;">Continue</button>
+            </div>
+
+            <!-- Step 2: Dream Destinations -->
+            <div class="onboard-step px-5 flex-1 flex flex-col" id="onboard-2" style="display:none">
+              <h2 class="text-xl font-bold mb-1 font-display" style="color:#F5F0E8;">Dream destinations?</h2>
+              <p class="text-sm mb-4" style="color:#8A8A8A;">Pick up to 5 places you'd love to visit</p>
+              <div class="dest-grid flex-1 overflow-y-auto" style="align-content:start;">
+                <div class="dest-card dest-tokyo" onclick="toggleDestCard(this)"><span>Tokyo</span></div>
+                <div class="dest-card dest-london" onclick="toggleDestCard(this)"><span>London</span></div>
+                <div class="dest-card dest-paris" onclick="toggleDestCard(this)"><span>Paris</span></div>
+                <div class="dest-card dest-bali" onclick="toggleDestCard(this)"><span>Bali</span></div>
+                <div class="dest-card dest-maldives" onclick="toggleDestCard(this)"><span>Maldives</span></div>
+                <div class="dest-card dest-tulum" onclick="toggleDestCard(this)"><span>Tulum</span></div>
+                <div class="dest-card dest-rome" onclick="toggleDestCard(this)"><span>Rome</span></div>
+                <div class="dest-card dest-santorini" onclick="toggleDestCard(this)"><span>Santorini</span></div>
+                <div class="dest-card dest-dubai" onclick="toggleDestCard(this)"><span>Dubai</span></div>
+                <div class="dest-card dest-capetown" onclick="toggleDestCard(this)"><span>Cape Town</span></div>
+                <div class="dest-card dest-sydney" onclick="toggleDestCard(this)"><span>Sydney</span></div>
+                <div class="dest-card dest-cancun" onclick="toggleDestCard(this)"><span>Cancun</span></div>
+              </div>
+              <div class="text-center mt-2">
+                <span class="text-[11px] font-medium" style="color:#c7d2fe;" id="destCount">0 of 5 selected</span>
+              </div>
+              <button onclick="nextOnboardStep(3)" class="w-full font-semibold py-3.5 rounded-xl mt-2 mb-4 text-sm" style="background:#818cf8; color:#0D0D0D;">Continue</button>
+            </div>
+
+            <!-- Step 3: Airlines -->
+            <div class="onboard-step px-5 flex-1 flex flex-col" id="onboard-3" style="display:none">
+              <h2 class="text-xl font-bold mb-1 font-display" style="color:#F5F0E8;">Favorite airlines?</h2>
+              <p class="text-sm mb-4" style="color:#8A8A8A;">Select airlines you prefer</p>
+              <div class="flex flex-wrap gap-2.5 flex-1 overflow-y-auto" style="align-content:start;">
+                <div class="airline-option" onclick="toggleChip(this)"><div class="airline-logo" style="background:#002244;">UA</div> United</div>
+                <div class="airline-option" onclick="toggleChip(this)"><div class="airline-logo" style="background:#b41421;">AA</div> American</div>
+                <div class="airline-option" onclick="toggleChip(this)"><div class="airline-logo" style="background:#003366;">DL</div> Delta</div>
+                <div class="airline-option" onclick="toggleChip(this)"><div class="airline-logo" style="background:#d71a21;">EK</div> Emirates</div>
+                <div class="airline-option" onclick="toggleChip(this)"><div class="airline-logo" style="background:#003b6f;">SQ</div> Singapore</div>
+                <div class="airline-option" onclick="toggleChip(this)"><div class="airline-logo" style="background:#006564;">CX</div> Cathay Pacific</div>
+                <div class="airline-option" onclick="toggleChip(this)"><div class="airline-logo" style="background:#1a2b6d;">NH</div> ANA</div>
+                <div class="airline-option" onclick="toggleChip(this)"><div class="airline-logo" style="background:#c8102e;">JL</div> JAL</div>
+                <div class="airline-option" onclick="toggleChip(this)"><div class="airline-logo" style="background:#5c0632;">QR</div> Qatar</div>
+                <div class="airline-option" onclick="toggleChip(this)"><div class="airline-logo" style="background:#075aaa;">BA</div> British Airways</div>
+                <div class="airline-option selected" onclick="toggleChip(this)">
+                  <div class="airline-logo" style="background:linear-gradient(135deg, #818cf8, #8B7340);">
+                    <svg width="14" height="14" fill="white" viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+                  </div> Open to any
+                </div>
+              </div>
+              <button onclick="nextOnboardStep(4)" class="w-full font-semibold py-3.5 rounded-xl mt-3 mb-4 text-sm" style="background:#818cf8; color:#0D0D0D;">Continue</button>
+            </div>
+
+            <!-- Step 4: Cabin -->
+            <div class="onboard-step px-5 flex-1 flex flex-col" id="onboard-4" style="display:none">
+              <h2 class="text-xl font-bold mb-1 font-display" style="color:#F5F0E8;">Preferred cabin?</h2>
+              <p class="text-sm mb-5" style="color:#8A8A8A;">What's your comfort level?</p>
+              <div class="space-y-2 flex-1">
+                <div class="onboard-option" onclick="selectSingle(this, 'cabin')">Economy</div>
+                <div class="onboard-option" onclick="selectSingle(this, 'cabin')">Premium Economy</div>
+                <div class="onboard-option selected" onclick="selectSingle(this, 'cabin')">Business Class</div>
+                <div class="onboard-option" onclick="selectSingle(this, 'cabin')">First Class</div>
+                <div class="onboard-option" onclick="selectSingle(this, 'cabin')">Flexible (any cabin)</div>
+              </div>
+              <button onclick="nextOnboardStep(5)" class="w-full font-semibold py-3.5 rounded-xl mt-4 mb-4 text-sm" style="background:#818cf8; color:#0D0D0D;">Continue</button>
+            </div>
+
+            <!-- Step 5: Travel Frequency -->
+            <div class="onboard-step px-5 flex-1 flex flex-col" id="onboard-5" style="display:none">
+              <h2 class="text-xl font-bold mb-1 font-display" style="color:#F5F0E8;">How often do you travel?</h2>
+              <p class="text-sm mb-5" style="color:#8A8A8A;">Helps us pace your deals</p>
+              <div class="space-y-2 flex-1">
+                <div class="onboard-option" onclick="selectSingle(this, 'freq')">1-2 trips per year</div>
+                <div class="onboard-option selected" onclick="selectSingle(this, 'freq')">3-5 trips per year</div>
+                <div class="onboard-option" onclick="selectSingle(this, 'freq')">6-10 trips per year</div>
+                <div class="onboard-option" onclick="selectSingle(this, 'freq')">10+ trips per year</div>
+              </div>
+              <button onclick="goScreen('deals-hub')" class="w-full font-semibold py-3.5 rounded-xl mt-4 mb-4 text-sm" style="background:#818cf8; color:#0D0D0D;">Find My Deals</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREEN: DEALS HUB -->
+        <div class="screen active" id="screen-deals-hub">
+          <div class="px-5 pt-3 pb-1 flex items-center justify-between">
+            <div>
+              <h1 class="text-xl font-bold font-display" style="color:#F5F0E8;">Deals</h1>
+              <p class="text-xs" style="color:#8A8A8A;">Curated for you</p>
+            </div>
+            <button onclick="goScreen('deal-history')" class="w-8 h-8 rounded-full flex items-center justify-center" style="background:rgba(255,255,255,0.06);">
+              <svg width="16" height="16" fill="none" stroke="#818cf8" stroke-width="2"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+            </button>
+          </div>
+
+          <!-- Filter Chips -->
+          <div class="px-5 py-2 flex gap-2 overflow-x-auto" style="scrollbar-width:none;">
+            <span class="filter-chip active" data-filter="all" onclick="filterDeals(this)">All</span>
+            <span class="filter-chip" data-filter="sweet-spot" onclick="filterDeals(this)">Sweet Spots</span>
+            <span class="filter-chip" data-filter="first-class" onclick="filterDeals(this)">First Class</span>
+            <span class="filter-chip" data-filter="flash" onclick="filterDeals(this)">Flash</span>
+            <span class="filter-chip" data-filter="transfer-bonus" onclick="filterDeals(this)">Transfer</span>
+            <span class="filter-chip" data-filter="new-route" onclick="filterDeals(this)">New Route</span>
+            <span class="filter-chip" data-filter="promo" onclick="filterDeals(this)">Promo</span>
+          </div>
+
+          <!-- Swipe Area -->
+          <div class="swipe-container" id="swipeContainer">
+            <div class="text-center text-sm" id="noMoreCards" style="display:none">
+              <p class="text-lg mb-1" style="color:#F5F0E8;">All caught up!</p>
+              <p class="text-xs" style="color:#8A8A8A;">Check back tomorrow for new deals</p>
+            </div>
+          </div>
+
+          <!-- Deals remaining -->
+          <div class="text-center py-1" id="dealsCounter">
+            <span class="text-[10px] font-medium tracking-wide" style="color:#c7d2fe;" id="dealsCountText">10 deals remaining</span>
+          </div>
+
+          <!-- Liked Toast -->
+          <div id="likedToast" style="display:none; position:absolute; bottom:140px; left:50%; transform:translateX(-50%) translateY(10px); z-index:50; opacity:0; transition:all 0.3s ease; background:rgba(129,140,248,0.95); border-radius:16px; padding:12px 18px; backdrop-filter:blur(10px); min-width:260px;" class="flex items-center gap-3">
+            <svg width="22" height="22" fill="white" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <div class="flex-1">
+              <div class="text-sm font-bold" style="color:#0D0D0D;" id="toastRoute"></div>
+              <div class="text-[10px] font-medium" style="color:rgba(0,0,0,0.6);" id="toastScore"></div>
+            </div>
+            <button onclick="toastMessageConcierge()" class="text-[11px] font-bold px-3 py-1.5 rounded-lg" style="background:#0D0D0D; color:#818cf8;">Message</button>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-center gap-6 py-3" id="swipeButtons">
+            <button onclick="swipeAction('left')" class="w-14 h-14 rounded-full border-2 flex items-center justify-center transition-colors" style="border-color:rgba(229,77,77,0.4); color:#E54D4D; background:rgba(255,255,255,0.06);">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+            <button onclick="swipeAction('right')" class="w-16 h-16 rounded-full flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all" style="background:#818cf8;">
+              <svg width="28" height="28" fill="white" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- SCREEN: DEAL DETAIL (Dynamic) -->
+        <div class="screen" id="screen-deal-detail">
+          <div class="flex-1 overflow-y-auto" id="dealDetailContent">
+            <!-- Populated dynamically by showDealDetail() -->
+          </div>
+        </div>
+
+        <!-- SCREEN: DEAL HISTORY -->
+        <div class="screen" id="screen-deal-history">
+          <div class="flex-1 overflow-y-auto">
+            <div class="px-5 pt-4 pb-2 flex items-center justify-between">
+              <div>
+                <h1 class="text-xl font-bold font-display" style="color:#F5F0E8;">Deal History</h1>
+                <p class="text-xs" style="color:#8A8A8A;">Past 30 days</p>
+              </div>
+              <button onclick="goScreen('deals-hub')" class="text-sm font-medium" style="color:#818cf8;">Done</button>
+            </div>
+            <!-- Stats -->
+            <div class="mx-5 my-3 rounded-xl p-3 flex items-center justify-around glass-card">
+              <div class="text-center"><div class="text-lg font-bold" style="color:#F5F0E8;">10</div><div class="text-[10px]" style="color:#4A4A4A;">Shown</div></div>
+              <div class="text-center"><div class="text-lg font-bold" style="color:#12B28C;">3</div><div class="text-[10px]" style="color:#4A4A4A;">Liked</div></div>
+              <div class="text-center"><div class="text-lg font-bold" style="color:#818cf8;">2</div><div class="text-[10px]" style="color:#4A4A4A;">Booked</div></div>
+              <div class="text-center"><div class="text-lg font-bold" style="color:#8A8A8A;">1</div><div class="text-[10px]" style="color:#4A4A4A;">Skipped</div></div>
+            </div>
+            <!-- Dynamic History Items -->
+            <div class="px-5" id="historyList">
+              <!-- Populated by buildHistory() -->
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREEN: PREFERENCES -->
+        <div class="screen" id="screen-preferences">
+          <div class="flex-1 overflow-y-auto">
+            <div class="px-5 pt-4 pb-2 flex items-center justify-between">
+              <h1 class="text-xl font-bold font-display" style="color:#F5F0E8;">Deal Preferences</h1>
+              <button onclick="goScreen('deals-hub')" class="text-sm font-medium" style="color:#818cf8;">Done</button>
+            </div>
+            <div class="px-5 pb-6 space-y-5">
+              <div>
+                <label class="text-xs font-semibold uppercase tracking-wide block mb-2" style="color:#c7d2fe;">Home Airports</label>
+                <div class="flex flex-wrap gap-2">
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full" style="background:rgba(129,140,248,0.15); color:#818cf8;">SFO</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full" style="background:rgba(129,140,248,0.15); color:#818cf8;">JFK</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full cursor-pointer" style="background:#1A1A1A; border:1px dashed #4A4A4A; color:#8A8A8A;">+ Add</span>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-semibold uppercase tracking-wide block mb-2" style="color:#c7d2fe;">Dream Destinations</label>
+                <div class="flex flex-wrap gap-2">
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full" style="background:rgba(129,140,248,0.15); color:#818cf8;">Tokyo</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full" style="background:rgba(129,140,248,0.15); color:#818cf8;">London</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full" style="background:rgba(129,140,248,0.15); color:#818cf8;">Paris</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full" style="background:rgba(129,140,248,0.15); color:#818cf8;">Bali</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full" style="background:rgba(129,140,248,0.15); color:#818cf8;">Madrid</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full cursor-pointer" style="background:#1A1A1A; border:1px dashed #4A4A4A; color:#8A8A8A;">+ Add</span>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-semibold uppercase tracking-wide block mb-2" style="color:#c7d2fe;">Preferred Airlines</label>
+                <div class="flex flex-wrap gap-2">
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full" style="background:rgba(129,140,248,0.15); color:#818cf8;">United</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full" style="background:rgba(129,140,248,0.15); color:#818cf8;">Cathay Pacific</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full" style="background:rgba(129,140,248,0.15); color:#818cf8;">JAL</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full cursor-pointer" style="background:#1A1A1A; border:1px dashed #4A4A4A; color:#8A8A8A;">+ Add</span>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-semibold uppercase tracking-wide block mb-2" style="color:#c7d2fe;">Preferred Cabin</label>
+                <div class="rounded-xl p-3 text-sm font-medium" style="background:#1A1A1A; color:#F5F0E8;">Business Class</div>
+              </div>
+              <div>
+                <label class="text-xs font-semibold uppercase tracking-wide block mb-2" style="color:#c7d2fe;">Show Deals</label>
+                <div class="flex items-center justify-between rounded-xl p-3" style="background:#1A1A1A;">
+                  <span class="text-sm" style="color:#F5F0E8;">Enable Deals tab</span>
+                  <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-semibold uppercase tracking-wide block mb-2" style="color:#c7d2fe;">Deal Notifications</label>
+                <div class="flex items-center justify-between rounded-xl p-3" style="background:#1A1A1A;">
+                  <span class="text-sm" style="color:#F5F0E8;">Push notifications for deals</span>
+                  <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-semibold uppercase tracking-wide block mb-2" style="color:#c7d2fe;">Notification Frequency</label>
+                <div class="flex gap-2" id="freqChips">
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full cursor-pointer freq-chip" onclick="selectFreqChip(this)" style="background:#1A1A1A; color:#8A8A8A;">1/week</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full cursor-pointer freq-chip active" onclick="selectFreqChip(this)" style="background:#818cf8; color:#0D0D0D;">2/week</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full cursor-pointer freq-chip" onclick="selectFreqChip(this)" style="background:#1A1A1A; color:#8A8A8A;">3/week</span>
+                  <span class="text-xs font-medium px-3 py-1.5 rounded-full cursor-pointer freq-chip" onclick="selectFreqChip(this)" style="background:#1A1A1A; color:#8A8A8A;">Daily</span>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-semibold uppercase tracking-wide block mb-2" style="color:#c7d2fe;">Do Not Disturb</label>
+                <div class="flex items-center justify-between rounded-xl p-3" style="background:#1A1A1A;">
+                  <span class="text-sm" style="color:#F5F0E8;">Quiet hours (9pm - 8am)</span>
+                  <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                </div>
+                <div class="flex items-center justify-between rounded-xl p-3 mt-2" style="background:#1A1A1A;">
+                  <span class="text-sm" style="color:#F5F0E8;">No deals on weekends</span>
+                  <div class="toggle" onclick="this.classList.toggle('on')"></div>
+                </div>
+              </div>
+              <div>
+                <label class="text-xs font-semibold uppercase tracking-wide block mb-2" style="color:#c7d2fe;">Suppress Deal Types</label>
+                <div class="flex items-center justify-between rounded-xl p-3" style="background:#1A1A1A;">
+                  <span class="text-sm" style="color:#F5F0E8;">Hide economy deals</span>
+                  <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                </div>
+                <div class="flex items-center justify-between rounded-xl p-3 mt-2" style="background:#1A1A1A;">
+                  <span class="text-sm" style="color:#F5F0E8;">No short-haul (&lt;2hr flights)</span>
+                  <div class="toggle" onclick="this.classList.toggle('on')"></div>
+                </div>
+              </div>
+              <div class="space-y-2 pt-2">
+                <button class="w-full border font-medium py-3 rounded-xl text-sm" style="border-color:#818cf8; color:#818cf8; background:rgba(129,140,248,0.08);">Snooze Deals for 1 Week</button>
+                <button class="w-full border font-medium py-3 rounded-xl text-sm" style="border-color:#E54D4D; color:#E54D4D; background:transparent;">Reset Profile to Defaults</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREEN: EMPTY STATE -->
+        <div class="screen" id="screen-empty-state">
+          <div class="px-5 pt-3 pb-1">
+            <h1 class="text-xl font-bold font-display" style="color:#F5F0E8;">Deals</h1>
+            <p class="text-xs" style="color:#8A8A8A;">Curated for you</p>
+          </div>
+          <div class="flex-1 flex items-center justify-center px-8">
+            <div class="text-center">
+              <div class="relative inline-block mb-6">
+                <div class="pulse-ring absolute" style="width:120px;height:120px;border-radius:50%;background:#818cf8;top:50%;left:50%;margin-top:-60px;margin-left:-60px;"></div>
+                <div class="float-anim relative" style="z-index:1;">
+                  <svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+                    <circle cx="60" cy="60" r="56" fill="#1A1A1A" stroke="#2E2E2E" stroke-width="2"/>
+                    <ellipse cx="30" cy="50" rx="14" ry="6" fill="#2E2E2E" opacity="0.7"/>
+                    <ellipse cx="85" cy="38" rx="10" ry="5" fill="#2E2E2E" opacity="0.5"/>
+                    <ellipse cx="70" cy="70" rx="12" ry="5" fill="#2E2E2E" opacity="0.6"/>
+                    <g transform="translate(35, 30) rotate(15)">
+                      <path d="M25 22 L45 18 L25 14 L20 0 L16 14 L0 18 L16 22 L20 36 Z" fill="#818cf8" opacity="0.9"/>
+                    </g>
+                    <g transform="translate(68, 68)">
+                      <circle cx="12" cy="12" r="10" stroke="#c7d2fe" stroke-width="2.5" fill="none"/>
+                      <path d="M20 20 L28 28" stroke="#c7d2fe" stroke-width="2.5" stroke-linecap="round"/>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+              <h2 class="text-lg font-bold mb-2 font-display" style="color:#F5F0E8;">We're searching for deals</h2>
+              <p class="text-sm leading-relaxed" style="color:#8A8A8A;">Scanning 65+ deal sources to find flights that match your preferences. Check back soon.</p>
+              <div class="flex items-center justify-center gap-1.5 mt-4">
+                <div class="w-1.5 h-1.5 rounded-full" style="background:#818cf8; animation:pulse-ring 1.5s ease-out infinite;"></div>
+                <div class="w-1.5 h-1.5 rounded-full" style="background:#818cf8; animation:pulse-ring 1.5s ease-out 0.3s infinite;"></div>
+                <div class="w-1.5 h-1.5 rounded-full" style="background:#818cf8; animation:pulse-ring 1.5s ease-out 0.6s infinite;"></div>
+              </div>
+              <button onclick="goScreen('preferences')" class="mt-6 font-semibold py-3 px-6 rounded-xl text-sm" style="background:#818cf8; color:#0D0D0D;">Edit Preferences</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <div class="tab-item" onclick="goScreen('deals-hub')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span>Home</span>
+        </div>
+        <div class="tab-item active" onclick="goScreen('deals-hub')">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+          <span>Deals</span>
+        </div>
+        <div class="tab-item" onclick="goScreen('deal-history')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <span>Trips</span>
+        </div>
+        <div class="tab-item" onclick="goScreen('preferences')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+    <div class="shrink-0" style="width:240px; position:sticky; top:24px;">
+      <div class="rounded-2xl shadow-lg px-4 py-3" style="background:#1A1A1A;">
+        <span class="text-[10px] font-semibold tracking-widest uppercase block text-center mb-2" style="color:#c7d2fe;">SCORING TIERS</span>
+        <div class="space-y-1.5 text-[11px]" style="color:#8A8A8A;">
+          <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#12B28C;"></span><span class="font-medium">PERFECT 85-100</span></div>
+          <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#818cf8;"></span><span class="font-medium">STRONG 70-84</span></div>
+          <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#8A8A8A;"></span><span class="font-medium">GOOD 55-69</span></div>
+          <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#4A4A4A;"></span><span class="font-medium">WEAK 40-54</span></div>
+          <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full" style="background:#E54D4D;"></span><span class="font-medium">POOR &lt;40</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ===== DEAL DATA (10 Real Deals) =====
+    const deals = [
+      {
+        route: 'JFK \u2192 Tokyo', dest: 'tokyo', destLabel: 'Tokyo, Japan',
+        dates: 'May 12-26, 2026', miles: '60,000', program: 'American AAdvantage',
+        cabin: 'Business Class', source: 'Going Elite', pubDate: 'Mar 10', score: 95, tier: 'perfect',
+        dealType: 'sweet-spot', dealTypeLabel: 'Sweet Spot',
+        airline: 'Japan Airlines', airlineCode: 'JL', airlineColor: '#c8102e', aircraft: '787-9 Dreamliner', flightNum: 'JL 5',
+        departure: '1:15 PM', arrival: '+1 day 4:30 PM', duration: '14h 15m', stops: 'Nonstop',
+        taxes: '~$86', retailValue: '~$9,400', savings: '~$9,314', cpm: '15.7\u00A2',
+        conciergeMsg: 'We found JFK\u2192Tokyo nonstop on JAL for May 12-26 \u2014 Business cabin with their newest suite, just 60,000 AA miles. This is one of the best sweet spots in the game right now. Matches your spring Tokyo trip. Ready to book?',
+        matchReasons: ['JAL business suite \u2014 best-in-class product', 'Award sweet spot: 40% below avg redemption', 'Matches your #1 dream destination', 'Nonstop from your home airport'],
+        scoreBreakdown: { destination: 30, origin: 18, points: 22, cabin: 15, timing: 10 }
+      },
+      {
+        route: 'JFK \u2192 London', dest: 'london', destLabel: 'London, UK',
+        dates: 'June 5-15, 2026', miles: '29,000', program: 'Virgin Atlantic Flying Club',
+        cabin: 'Business Class', source: 'Thrifty Traveler', pubDate: 'Mar 8', score: 93, tier: 'perfect',
+        dealType: 'transfer-bonus', dealTypeLabel: 'Transfer Bonus',
+        airline: 'Virgin Atlantic', airlineCode: 'VS', airlineColor: '#d71a21', aircraft: 'A330-900neo', flightNum: 'VS 4',
+        departure: '9:30 PM', arrival: '+1 day 9:45 AM', duration: '7h 15m', stops: 'Nonstop',
+        taxes: '~$230', retailValue: '~$5,800', savings: '~$5,570', cpm: '19.2\u00A2',
+        conciergeMsg: 'Virgin Atlantic Upper Class to London for just 29,000 points \u2014 this is a unicorn fare. With the current 40% Chase transfer bonus, you only need 21,000 Chase points. This won\'t last more than a few days.',
+        matchReasons: ['40% transfer bonus makes this exceptional value', 'Virgin Upper Class \u2014 lie-flat suites with onboard bar', 'London is in your top 5 destinations', 'Lowest points cost we\'ve seen this year'],
+        scoreBreakdown: { destination: 28, origin: 18, points: 25, cabin: 15, timing: 7 }
+      },
+      {
+        route: 'JFK \u2192 Doha', dest: 'dubai', destLabel: 'Doha, Qatar',
+        dates: 'Oct 8-22, 2026', miles: '70,000', program: 'Qatar Privilege Club',
+        cabin: 'Qsuites Business', source: 'AwardFares', pubDate: 'Mar 12', score: 93, tier: 'perfect',
+        dealType: 'flash', dealTypeLabel: 'Flash Deal',
+        airline: 'Qatar Airways', airlineCode: 'QR', airlineColor: '#5c0632', aircraft: '777-300ER', flightNum: 'QR 702',
+        departure: '10:05 PM', arrival: '+1 day 5:15 PM', duration: '12h 10m', stops: 'Nonstop',
+        taxes: '~$105', retailValue: '~$11,200', savings: '~$11,095', cpm: '16.0\u00A2',
+        conciergeMsg: 'Qatar Qsuites just opened wide availability for October \u2014 this almost never happens. 70,000 Avios for what is arguably the world\'s best business class product. We\'re seeing seats on almost every day this month. Move fast.',
+        matchReasons: ['Qatar Qsuites \u2014 voted #1 business class globally', 'Flash availability: wide-open seats (rare)', 'Only 70,000 Avios for a $11K+ product', 'Connect onward to Maldives, Bali, or Dubai'],
+        scoreBreakdown: { destination: 25, origin: 18, points: 25, cabin: 15, timing: 10 }
+      },
+      {
+        route: 'SFO \u2192 Hong Kong', dest: 'tokyo', destLabel: 'Hong Kong, China',
+        dates: 'Sep 3-17, 2026', miles: '125,000', program: 'Cathay Pacific AsiaMiles',
+        cabin: 'First Class', source: 'Straight To The Points', pubDate: 'Mar 11', score: 90, tier: 'perfect',
+        dealType: 'first-class', dealTypeLabel: 'First Class',
+        airline: 'Cathay Pacific', airlineCode: 'CX', airlineColor: '#006564', aircraft: '777-300ER', flightNum: 'CX 879',
+        departure: '1:00 AM', arrival: '+1 day 7:15 AM', duration: '14h 15m', stops: 'Nonstop',
+        taxes: '~$125', retailValue: '~$14,500', savings: '~$14,375', cpm: '11.5\u00A2',
+        conciergeMsg: 'Cathay Pacific First Class to Hong Kong \u2014 125,000 AsiaMiles for a $14,500 product. First class availability on Cathay is extremely rare. Their new Aria Suite is the hot ticket for 2026. This is a once-a-year opportunity.',
+        matchReasons: ['Cathay First Class \u2014 Aria Suite (new for 2026)', 'First class availability is exceptionally rare', 'Preferred airline match (Cathay Pacific)', '$14,500 retail value for 125K miles'],
+        scoreBreakdown: { destination: 24, origin: 20, points: 21, cabin: 15, timing: 10 }
+      },
+      {
+        route: 'JFK \u2192 Madrid', dest: 'rome', destLabel: 'Madrid, Spain',
+        dates: 'April 18-28, 2026', miles: '40,500', program: 'Iberia Avios',
+        cabin: 'Business Class', source: 'Frequent Miler', pubDate: 'Mar 7', score: 86, tier: 'perfect',
+        dealType: 'sweet-spot', dealTypeLabel: 'Sweet Spot',
+        airline: 'Iberia', airlineCode: 'IB', airlineColor: '#d71a21', aircraft: 'A350-900', flightNum: 'IB 6254',
+        departure: '7:10 PM', arrival: '+1 day 8:20 AM', duration: '7h 10m', stops: 'Nonstop',
+        taxes: '~$95', retailValue: '~$4,200', savings: '~$4,105', cpm: '10.1\u00A2',
+        conciergeMsg: 'Iberia business to Madrid for 40,500 Avios \u2014 one of the best sweet spots to Europe. Lie-flat seat, nonstop from JFK. Off-peak pricing makes this a steal.',
+        matchReasons: ['Lowest business class cost to Europe (40,500 Avios)', 'Off-peak award pricing', 'A350 with lie-flat business class', 'Gateway to connecting flights across Europe'],
+        scoreBreakdown: { destination: 26, origin: 18, points: 22, cabin: 12, timing: 8 }
+      },
+      {
+        route: 'SEA \u2192 Tokyo', dest: 'tokyo', destLabel: 'Tokyo, Japan',
+        dates: 'Aug 15-29, 2026', miles: '89,000', program: 'Delta SkyMiles',
+        cabin: 'Delta One Suites', source: 'Thrifty Traveler', pubDate: 'Mar 9', score: 82, tier: 'strong',
+        dealType: 'new-route', dealTypeLabel: 'New Route',
+        airline: 'Delta Air Lines', airlineCode: 'DL', airlineColor: '#003366', aircraft: 'A350-900', flightNum: 'DL 167',
+        departure: '12:30 PM', arrival: '+1 day 3:45 PM', duration: '10h 15m', stops: 'Nonstop',
+        taxes: '~$65', retailValue: '~$7,800', savings: '~$7,735', cpm: '8.7\u00A2',
+        conciergeMsg: 'Delta One Suites SEA\u2192Tokyo for 89K miles. Unprecedented availability this summer on their new A350 route.',
+        matchReasons: ['Delta One Suites \u2014 award-winning product', 'New A350 route with wide availability', 'Summer travel dates with good pricing'],
+        scoreBreakdown: { destination: 28, origin: 12, points: 20, cabin: 15, timing: 7 }
+      },
+      {
+        route: 'JFK \u2192 Auckland', dest: 'sydney', destLabel: 'Auckland, New Zealand',
+        dates: 'Nov 1-18, 2026', miles: '80,000', program: 'American AAdvantage',
+        cabin: 'Business Class', source: 'Going Elite', pubDate: 'Mar 6', score: 78, tier: 'strong',
+        dealType: 'sweet-spot', dealTypeLabel: 'Sweet Spot',
+        airline: 'Qantas', airlineCode: 'QF', airlineColor: '#e30613', aircraft: '787-9 Dreamliner', flightNum: 'QF 4',
+        departure: '7:55 PM', arrival: '+2 days 6:10 AM', duration: '18h 15m', stops: '1 stop via Sydney',
+        taxes: '~$110', retailValue: '~$8,900', savings: '~$8,790', cpm: '11.1\u00A2',
+        conciergeMsg: 'Qantas business to Auckland via Sydney for 80K AA miles. Solid value for a long-haul premium cabin.',
+        matchReasons: ['80K AA miles for Qantas business \u2014 excellent rate', 'Qantas 787 business class', 'Spring in New Zealand \u2014 ideal timing'],
+        scoreBreakdown: { destination: 20, origin: 18, points: 20, cabin: 12, timing: 8 }
+      },
+      {
+        route: 'ORD \u2192 Amsterdam', dest: 'london', destLabel: 'Amsterdam, Netherlands',
+        dates: 'July 10-22, 2026', miles: '50,000', program: 'Flying Blue',
+        cabin: 'Business Class', source: 'Frequent Miler', pubDate: 'Mar 13', score: 74, tier: 'strong',
+        dealType: 'promo', dealTypeLabel: 'Monthly Promo',
+        airline: 'KLM', airlineCode: 'KL', airlineColor: '#00a1e4', aircraft: '787-10 Dreamliner', flightNum: 'KL 612',
+        departure: '4:55 PM', arrival: '+1 day 7:05 AM', duration: '8h 10m', stops: 'Nonstop',
+        taxes: '~$195', retailValue: '~$5,400', savings: '~$5,205', cpm: '10.4\u00A2',
+        conciergeMsg: 'Flying Blue promo: KLM business to Amsterdam for 50K miles. Monthly promo deal \u2014 availability through July.',
+        matchReasons: ['Flying Blue monthly promo \u2014 25% discount', 'KLM 787-10 business class', 'Peak summer dates available (rare)'],
+        scoreBreakdown: { destination: 18, origin: 14, points: 22, cabin: 12, timing: 8 }
+      },
+      {
+        route: 'LAX \u2192 Tokyo', dest: 'tokyo', destLabel: 'Tokyo, Japan',
+        dates: 'May 20 - Jun 3, 2026', miles: '88,000', program: 'ANA Mileage Club',
+        cabin: 'Business (The Room)', source: 'AwardFares', pubDate: 'Mar 11', score: 85, tier: 'perfect',
+        dealType: 'new-route', dealTypeLabel: 'New Cabin',
+        airline: 'ANA', airlineCode: 'NH', airlineColor: '#1a2b6d', aircraft: '777-300ER', flightNum: 'NH 105',
+        departure: '11:35 AM', arrival: '+1 day 3:50 PM', duration: '12h 15m', stops: 'Nonstop',
+        taxes: '~$78', retailValue: '~$8,600', savings: '~$8,522', cpm: '9.7\u00A2',
+        conciergeMsg: 'ANA "The Room" business class LAX\u2192Tokyo for 88K miles. The Room is consistently rated the widest business class seat in the sky. ANA releases more award space to their own members \u2014 availability is good through spring.',
+        matchReasons: ['ANA "The Room" \u2014 widest business class seat', 'ANA member pricing via Mileage Club', 'Tokyo is your #1 dream destination', 'Good spring availability'],
+        scoreBreakdown: { destination: 30, origin: 10, points: 20, cabin: 15, timing: 10 }
+      },
+      {
+        route: 'MIA \u2192 Paris', dest: 'paris', destLabel: 'Paris, France',
+        dates: 'Sep 10-24, 2026', miles: '58,500', program: 'Virgin Atlantic Flying Club',
+        cabin: 'Business Class', source: 'Straight To The Points', pubDate: 'Mar 12', score: 68, tier: 'good',
+        dealType: 'sweet-spot', dealTypeLabel: 'Sweet Spot',
+        airline: 'Air France', airlineCode: 'AF', airlineColor: '#002157', aircraft: 'A350-900', flightNum: 'AF 99',
+        departure: '6:20 PM', arrival: '+1 day 8:30 AM', duration: '9h 10m', stops: 'Nonstop',
+        taxes: '~$215', retailValue: '~$4,800', savings: '~$4,585', cpm: '7.8\u00A2',
+        conciergeMsg: 'Air France business to Paris for 58.5K Virgin points. Decent value.',
+        matchReasons: ['Partner award via Virgin Flying Club', 'Air France A350 business class'],
+        scoreBreakdown: { destination: 22, origin: 8, points: 18, cabin: 12, timing: 8 }
+      }
+    ];
+
+    let currentCardIndex = 0;
+    let filteredDeals = [...deals];
+    let startX = 0, currentX = 0, isDragging = false;
+    let dragStartX = 0, dragStartY = 0;
+
+    // ===== DEAL TYPE ICONS (SVG) =====
+    function getDealTypeIcon(type) {
+      const icons = {
+        'sweet-spot': '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M13 3L4 14h7l-2 7 9-11h-7l2-7z"/></svg>',
+        'transfer-bonus': '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7.5 21.5L3 17l4.5-4.5 1.4 1.4L6.3 16.5H16v2H6.3l2.6 2.6zM16.5 11l4.5-4.5L16.5 2l-1.4 1.4 2.6 2.6H8v2h9.7l-2.6 2.6z"/></svg>',
+        'flash': '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/></svg>',
+        'first-class': '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
+        'new-route': '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>',
+        'promo': '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg>'
+      };
+      return icons[type] || icons['sweet-spot'];
+    }
+
+    // ===== SCREEN NAVIGATION =====
+    const prdRefs = {};
+    
+
+    function goScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + id).classList.add('active');
+      const ref = prdRefs[id];
+      if (ref) {
+        (document.getElementById('prdRef') || {}).innerHTML =
+          '<p class="font-medium mb-1" style="color:#F5F0E8;">' + ref.title + '</p>' +
+          '<p>Source: ' + ref.section + '</p>' +
+          '<p class="mt-2 text-[10px] italic" style="color:#4A4A4A;">' + ref.quote + '</p>';
+      }
+      if (id === 'deals-hub') { currentCardIndex = 0; buildCards(); updateDealsCounter(); }
+      if (id === 'deal-history') { buildHistory(); }
+      document.getElementById('phoneContent').scrollTop = 0;
+    }
+
+    // ===== SHOW DEAL DETAIL (Dynamic) =====
+    function showDealDetail(index) {
+      const d = deals[index] || filteredDeals[index];
+      if (!d) return;
+
+      const scoreBorder = d.score >= 85 ? '#12B28C' : d.score >= 70 ? '#818cf8' : '#8A8A8A';
+      const scoreGlow = d.score >= 85 ? 'rgba(18,178,140,0.4)' : d.score >= 70 ? 'rgba(129,140,248,0.4)' : 'rgba(138,138,138,0.3)';
+
+      let html = '';
+
+      // Section 1: Hero Image
+      html += '<div class="dest-img dest-' + d.dest + '" style="height:220px; position:relative;">';
+      html += '<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0) 50%);"></div>';
+      html += '<button onclick="goScreen(\'deals-hub\')" style="position:absolute;top:12px;left:12px;" class="w-8 h-8 rounded-full backdrop-blur-sm flex items-center justify-center" title="Back"><svg width="16" height="16" fill="none" stroke="white" stroke-width="2.5"><path d="M10 4l-4 4 4 4"/></svg></button>';
+      html += '<div style="position:absolute;top:12px;right:12px;border:3px solid ' + scoreBorder + ';box-shadow:0 0 20px ' + scoreGlow + ';" class="w-12 h-12 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center text-white font-bold text-sm">' + d.score + '%</div>';
+      html += '<div style="position:absolute;bottom:0;left:0;right:0;padding:14px 18px;">';
+      html += '<span class="text-[11px] font-semibold bg-white/25 backdrop-blur-sm text-white px-3 py-1 rounded-full">' + d.cabin + '</span>';
+      html += '<div class="text-[26px] font-bold text-white mt-2 font-display" style="text-shadow:0 2px 8px rgba(0,0,0,0.3);">' + d.route + '</div>';
+      html += '<div class="text-[13px] text-white/80 mt-0.5">' + d.destLabel + ' \u00B7 ' + d.dates + '</div>';
+      html += '</div></div>';
+
+      // Section 2: Deal Overview
+      html += '<div class="mx-4 mt-4 rounded-2xl p-4 glass-card">';
+      html += '<div class="flex items-center gap-2 mb-3"><span class="deal-type-badge deal-type-' + d.dealType + '">' + getDealTypeIcon(d.dealType) + ' ' + d.dealTypeLabel + '</span></div>';
+      html += '<div class="flex items-center justify-between">';
+      html += '<div><div class="text-xl font-bold" style="color:#818cf8;">' + d.miles + ' miles</div><div class="text-xs" style="color:#8A8A8A;">' + d.program + '</div></div>';
+      html += '<div class="text-right"><div class="text-xs font-semibold flex items-center gap-1" style="color:#818cf8;"><svg width="12" height="12" fill="#818cf8" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>Validated</div>';
+      html += '<div class="text-[10px] mt-0.5" style="color:#8A8A8A;">' + d.source + ' \u00B7 ' + d.pubDate + '</div></div>';
+      html += '</div></div>';
+
+      // Section 3: Concierge Insights (varies by tier)
+      if (d.tier === 'perfect') {
+        // PERFECT: Full personalized concierge message
+        html += '<div class="mx-4 mt-3 rounded-2xl p-4" style="background:#1A1A1A; border-left:3px solid #818cf8;">';
+        html += '<div class="flex items-start gap-3">';
+        html += '<div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style="background:linear-gradient(135deg, #818cf8, #8B7340);">M</div>';
+        html += '<div><div class="text-xs font-semibold mb-1" style="color:#c7d2fe;">Your Concierge</div>';
+        html += '<p class="text-sm leading-relaxed" style="color:#F5F0E8;">"' + d.conciergeMsg + '"</p></div>';
+        html += '</div></div>';
+      } else if (d.tier === 'strong') {
+        // STRONG: Generic match message
+        html += '<div class="mx-4 mt-3 rounded-2xl p-4" style="background:#1A1A1A; border-left:3px solid #8A8A8A;">';
+        html += '<div class="flex items-start gap-3">';
+        html += '<div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style="background:linear-gradient(135deg, #818cf8, #8B7340);">M</div>';
+        html += '<div><div class="text-xs font-semibold mb-1" style="color:#c7d2fe;">Your match</div>';
+        html += '<p class="text-sm leading-relaxed" style="color:#F5F0E8;">This is a strong match for you. ' + d.route + ' at ' + d.miles + ' miles is well-priced for ' + d.cabin + '. Want to explore further?</p></div>';
+        html += '</div></div>';
+      } else {
+        // GOOD: Minimal message
+        html += '<div class="mx-4 mt-3 rounded-2xl p-3" style="background:#1A1A1A; border-left:3px solid #4A4A4A;">';
+        html += '<p class="text-sm" style="color:#8A8A8A;">This deal may interest you based on your travel profile.</p>';
+        html += '</div>';
+      }
+
+      // Section 4: Why This Deal (PERFECT + STRONG only)
+      if ((d.tier === 'perfect' || d.tier === 'strong') && d.matchReasons && d.matchReasons.length > 0) {
+        html += '<div class="mx-4 mt-3">';
+        html += '<div class="text-[10px] font-semibold uppercase tracking-widest mb-2" style="color:#c7d2fe;">Why This Deal</div>';
+        html += '<div class="rounded-2xl p-4 space-y-2.5" style="background:#1A1A1A;">';
+        d.matchReasons.forEach(function(reason) {
+          html += '<div class="flex items-start gap-2"><svg width="14" height="14" fill="#818cf8" viewBox="0 0 20 20" class="flex-shrink-0 mt-0.5"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg><span class="text-xs" style="color:#F5F0E8;">' + reason + '</span></div>';
+        });
+        html += '</div></div>';
+      }
+
+      // Section 4B: Score Breakdown
+      if (d.scoreBreakdown) {
+        var sb = d.scoreBreakdown;
+        html += '<div class="mx-4 mt-3">';
+        html += '<div class="text-[10px] font-semibold uppercase tracking-widest mb-2" style="color:#c7d2fe;">Match Score Breakdown</div>';
+        html += '<div class="rounded-2xl p-4" style="background:#1A1A1A;">';
+        var dims = [
+          { label: 'Destination', val: sb.destination, max: 30, color: '#818cf8' },
+          { label: 'Origin', val: sb.origin, max: 20, color: '#818cf8' },
+          { label: 'Points', val: sb.points, max: 25, color: '#818cf8' },
+          { label: 'Cabin', val: sb.cabin, max: 15, color: '#818cf8' },
+          { label: 'Timing', val: sb.timing, max: 10, color: '#818cf8' }
+        ];
+        dims.forEach(function(dim) {
+          var pct = Math.round((dim.val / dim.max) * 100);
+          html += '<div class="flex items-center gap-3 mb-2.5">';
+          html += '<span class="text-[11px] w-20 text-right" style="color:#8A8A8A;">' + dim.label + '</span>';
+          html += '<div class="flex-1 h-2 rounded-full" style="background:#2E2E2E;">';
+          html += '<div class="h-2 rounded-full" style="width:' + pct + '%;background:' + dim.color + ';"></div></div>';
+          html += '<span class="text-[11px] w-10 font-medium" style="color:#F5F0E8;">' + dim.val + '/' + dim.max + '</span>';
+          html += '</div>';
+        });
+        html += '<div class="flex items-center justify-between pt-2 mt-1" style="border-top:1px solid rgba(255,255,255,0.06);">';
+        html += '<span class="text-[11px] font-medium" style="color:#8A8A8A;">Total Score</span>';
+        html += '<span class="text-sm font-bold" style="color:#818cf8;">' + d.score + '/100</span>';
+        html += '</div></div></div>';
+      }
+
+      // Section 5: Deal Breakdown
+      html += '<div class="mx-4 mt-3">';
+      html += '<div class="text-[10px] font-semibold uppercase tracking-widest mb-2" style="color:#c7d2fe;">Deal Breakdown</div>';
+      html += '<div class="rounded-2xl p-4 glass-card">';
+      var rows = [
+        ['Miles Required', d.miles, '#F5F0E8', false],
+        ['Taxes & Fees', d.taxes, '#8A8A8A', false],
+        ['Retail Value', d.retailValue, '#F5F0E8', true],
+        ['You Save', d.savings, '#12B28C', true],
+        ['Value per Mile', d.cpm, '#818cf8', false]
+      ];
+      rows.forEach(function(row, i) {
+        html += '<div class="flex items-center justify-between' + (i < rows.length - 1 ? ' mb-2.5 pb-2.5" style="border-bottom:1px solid rgba(255,255,255,0.06);"' : '"') + '>';
+        html += '<span class="text-xs" style="color:#8A8A8A;">' + row[0] + '</span>';
+        html += '<span class="text-sm' + (row[3] ? ' font-bold' : ' font-medium') + '" style="color:' + row[2] + ';">' + row[1] + '</span>';
+        html += '</div>';
+      });
+      html += '</div></div>';
+
+      // Section 6: Flight Details
+      html += '<div class="mx-4 mt-3">';
+      html += '<div class="text-[10px] font-semibold uppercase tracking-widest mb-2" style="color:#c7d2fe;">Flight Details</div>';
+      html += '<div class="rounded-2xl p-4" style="background:#1A1A1A;">';
+      html += '<div class="flex items-center gap-2 mb-3"><svg width="16" height="16" fill="#818cf8" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
+      html += '<span class="text-sm font-semibold" style="color:#F5F0E8;">' + d.airline + '</span><span class="text-xs" style="color:#8A8A8A;">\u00B7 ' + d.aircraft + '</span></div>';
+      var flightRows = [
+        ['Flight', d.flightNum],
+        ['Route', d.route.replace('\u2192', '\u2192') + ' (' + d.stops + ')'],
+        ['Departs', d.departure],
+        ['Arrives', d.arrival],
+        ['Duration', d.duration],
+        ['Cabin', d.cabin]
+      ];
+      flightRows.forEach(function(row) {
+        html += '<div class="flex items-center justify-between py-1.5"><span class="text-xs" style="color:#8A8A8A;">' + row[0] + '</span><span class="text-xs font-medium" style="color:#F5F0E8;">' + row[1] + '</span></div>';
+      });
+      html += '</div></div>';
+
+      // Section 7: CTAs (vary by tier)
+      html += '<div class="px-4 mt-4 pb-4 space-y-2">';
+      html += '<button class="w-full font-semibold py-3.5 rounded-xl text-sm shadow-md" style="background:#818cf8; color:#0D0D0D;">Message Concierge</button>';
+      if (d.tier === 'perfect') {
+        html += '<button class="w-full font-medium py-3 rounded-xl text-sm glass-card" style="color:#F5F0E8;">Learn More</button>';
+      }
+      if (d.tier === 'strong' || d.tier === 'good') {
+        html += '<button class="w-full font-medium py-3 rounded-xl text-sm glass-card" style="color:#F5F0E8;">View Source</button>';
+        html += '<button onclick="goScreen(\'deals-hub\')" class="w-full font-medium py-3 rounded-xl text-sm" style="color:#818cf8; background:transparent;">Back to Deals</button>';
+      }
+      html += '<button class="w-full font-medium py-3 rounded-xl text-sm glass-card" style="color:#F5F0E8;">Share Deal</button>';
+      // Report button (all tiers)
+      html += '<div class="text-center pt-2"><button class="text-[11px] font-medium" style="color:#E54D4D;" onclick="reportDeal()">Report Invalid Deal</button></div>';
+      html += '</div>';
+
+      document.getElementById('dealDetailContent').innerHTML = html;
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-deal-detail').classList.add('active');
+      const ref = prdRefs['deal-detail'];
+      if (ref) {
+        (document.getElementById('prdRef') || {}).innerHTML =
+          '<p class="font-medium mb-1" style="color:#F5F0E8;">' + ref.title + '</p>' +
+          '<p>Source: ' + ref.section + '</p>' +
+          '<p class="mt-2 text-[10px] italic" style="color:#4A4A4A;">' + ref.quote + '</p>';
+      }
+      document.getElementById('phoneContent').scrollTop = 0;
+    }
+
+    // ===== SWIPE CARDS =====
+    function buildCards() {
+      const container = document.getElementById('swipeContainer');
+      container.querySelectorAll('.deal-card').forEach(c => c.remove());
+      document.getElementById('noMoreCards').style.display = 'none';
+      document.getElementById('swipeButtons').style.display = 'flex';
+
+      for (let i = Math.min(currentCardIndex + 2, filteredDeals.length - 1); i >= currentCardIndex; i--) {
+        const d = filteredDeals[i];
+        const card = document.createElement('div');
+        card.className = 'deal-card';
+        card.dataset.index = i;
+        const offset = i - currentCardIndex;
+        card.style.transform = 'scale(' + (1 - offset * 0.04) + ') translateY(' + (offset * 8) + 'px)';
+        card.style.zIndex = 10 - offset;
+        card.style.opacity = offset > 1 ? 0.5 : 1;
+
+        const scoreBorder = d.score >= 85 ? 'border-color:#12B28C' : d.score >= 70 ? 'border-color:#818cf8' : 'border-color:#8A8A8A';
+        const scoreGlow = d.score >= 85 ? 'box-shadow:0 0 20px rgba(18,178,140,0.4)' : d.score >= 70 ? 'box-shadow:0 0 20px rgba(129,140,248,0.4)' : 'box-shadow:0 0 20px rgba(138,138,138,0.3)';
+
+        // Concierge preview (first ~65 chars)
+        const preview = d.conciergeMsg.length > 65 ? d.conciergeMsg.substring(0, 65) + '...' : d.conciergeMsg;
+
+        card.innerHTML =
+          '<div class="swipe-indicator swipe-like">LIKE</div>' +
+          '<div class="swipe-indicator swipe-skip">SKIP</div>' +
+          '<div class="dest-img dest-' + d.dest + ' rounded-t-3xl" style="height:300px;">' +
+            '<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.6) 0%,rgba(0,0,0,0) 50%);border-radius:24px 24px 0 0;"></div>' +
+            '<div style="position:absolute;top:14px;left:14px;" class="flex items-center gap-2">' +
+              '<div class="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style="background:' + (d.airlineColor || '#4A4A4A') + ';">' + (d.airlineCode || '') + '</div>' +
+              '<span class="text-[11px] font-semibold bg-white/25 backdrop-blur-sm text-white px-3 py-1 rounded-full">' + d.cabin + '</span>' +
+            '</div>' +
+            '<div style="position:absolute;top:10px;right:14px;' + scoreBorder + ';' + scoreGlow + ';" class="w-12 h-12 rounded-full border-[3px] bg-white/15 backdrop-blur-sm flex items-center justify-center text-white font-bold text-sm">' + d.score + '%</div>' +
+            '<div style="position:absolute;bottom:0;left:0;right:0;padding:16px 18px;">' +
+              '<div class="text-[26px] font-bold text-white font-display" style="text-shadow:0 2px 8px rgba(0,0,0,0.3);">' + d.route + '</div>' +
+              '<div class="text-[13px] text-white/80 mt-0.5">' + d.destLabel + ' \u00B7 ' + d.dates + '</div>' +
+            '</div>' +
+            '<div class="photo-hint"><svg width="16" height="16" fill="white" opacity="0.7" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div>' +
+          '</div>' +
+          '<div class="px-4 pt-3 pb-2">' +
+            '<div class="flex items-center gap-2 mb-2"><span class="deal-type-badge deal-type-' + d.dealType + '">' + getDealTypeIcon(d.dealType) + ' ' + d.dealTypeLabel + '</span></div>' +
+            '<div class="flex items-center justify-between mb-2">' +
+              '<div><div class="text-lg font-bold" style="color:#818cf8;">' + d.miles + ' miles</div><div class="text-xs" style="color:#8A8A8A;">' + d.program + '</div></div>' +
+              '<div class="text-right"><div class="text-xs font-semibold flex items-center gap-1" style="color:#818cf8;"><svg width="12" height="12" fill="#818cf8" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>Validated</div><div class="text-[10px] mt-0.5" style="color:#8A8A8A;">' + d.source + ' \u00B7 ' + d.pubDate + '</div></div>' +
+            '</div>' +
+            '<div class="pt-2" style="border-top:1px solid rgba(255,255,255,0.06);">' +
+              '<p class="text-[11px] italic mb-1.5" style="color:#8A8A8A;">"' + preview + '"</p>' +
+              '<div class="flex items-center gap-1 cursor-pointer"><svg width="12" height="12" fill="none" stroke="#818cf8" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg><span class="text-[11px] font-semibold" style="color:#818cf8;">See Full Details</span></div>' +
+            '</div>' +
+          '</div>';
+
+        // Click-to-detail (only if not dragging)
+        card.addEventListener('mousedown', function(e) {
+          dragStartX = e.clientX; dragStartY = e.clientY;
+        });
+        card.addEventListener('mouseup', function(e) {
+          const dx = Math.abs(e.clientX - dragStartX);
+          const dy = Math.abs(e.clientY - dragStartY);
+          if (dx < 5 && dy < 5) {
+            const idx = parseInt(this.dataset.index);
+            showDealDetail(idx);
+          }
+        });
+
+        // Touch/Mouse events for swiping
+        card.addEventListener('mousedown', dragStart);
+        card.addEventListener('touchstart', dragStart, { passive: true });
+        container.appendChild(card);
+      }
+    }
+
+    function dragStart(e) {
+      const card = e.currentTarget;
+      if (parseInt(card.dataset.index) !== currentCardIndex) return;
+      isDragging = true;
+      startX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+      card.style.transition = 'none';
+
+      const moveHandler = (ev) => {
+        if (!isDragging) return;
+        currentX = (ev.type === 'touchmove' ? ev.touches[0].clientX : ev.clientX) - startX;
+        const rotate = currentX * 0.08;
+        card.style.transform = 'translateX(' + currentX + 'px) rotate(' + rotate + 'deg)';
+        const likeIndicator = card.querySelector('.swipe-like');
+        const skipIndicator = card.querySelector('.swipe-skip');
+        likeIndicator.style.opacity = Math.max(0, currentX / 100);
+        skipIndicator.style.opacity = Math.max(0, -currentX / 100);
+      };
+
+      const endHandler = () => {
+        isDragging = false;
+        document.removeEventListener('mousemove', moveHandler);
+        document.removeEventListener('mouseup', endHandler);
+        document.removeEventListener('touchmove', moveHandler);
+        document.removeEventListener('touchend', endHandler);
+
+        if (Math.abs(currentX) > 100) {
+          const direction = currentX > 0 ? 'right' : 'left';
+          if (direction === 'left' && filteredDeals[currentCardIndex]) {
+            skippedDeals.push(filteredDeals[currentCardIndex]);
+          }
+          card.classList.add('animating');
+          card.style.transform = 'translateX(' + (currentX > 0 ? 500 : -500) + 'px) rotate(' + (currentX > 0 ? 30 : -30) + 'deg)';
+          card.style.opacity = '0';
+          const swiped = filteredDeals[currentCardIndex];
+          setTimeout(() => {
+            card.remove();
+            currentCardIndex++;
+            updateDealsCounter();
+            if (currentCardIndex >= filteredDeals.length) {
+              document.getElementById('noMoreCards').style.display = 'block';
+              document.getElementById('swipeButtons').style.display = 'none';
+            } else { buildCards(); }
+            if (direction === 'right' && swiped) {
+              showLikedToast(swiped);
+            }
+          }, 300);
+        } else {
+          card.style.transition = 'transform 0.3s ease';
+          const offset = parseInt(card.dataset.index) - currentCardIndex;
+          card.style.transform = 'scale(' + (1 - offset * 0.04) + ') translateY(' + (offset * 8) + 'px)';
+          card.querySelector('.swipe-like').style.opacity = 0;
+          card.querySelector('.swipe-skip').style.opacity = 0;
+        }
+        currentX = 0;
+      };
+
+      document.addEventListener('mousemove', moveHandler);
+      document.addEventListener('mouseup', endHandler);
+      document.addEventListener('touchmove', moveHandler, { passive: true });
+      document.addEventListener('touchend', endHandler);
+    }
+
+    function swipeAction(direction) {
+      const container = document.getElementById('swipeContainer');
+      const topCard = container.querySelector('.deal-card[data-index="' + currentCardIndex + '"]');
+      if (!topCard) return;
+
+      if (direction === 'left' && filteredDeals[currentCardIndex]) {
+        skippedDeals.push(filteredDeals[currentCardIndex]);
+      }
+      topCard.classList.add('animating');
+      topCard.style.transform = 'translateX(' + (direction === 'right' ? 500 : -500) + 'px) rotate(' + (direction === 'right' ? 30 : -30) + 'deg)';
+      topCard.style.opacity = '0';
+
+      const swiped = filteredDeals[currentCardIndex];
+      setTimeout(() => {
+        topCard.remove();
+        currentCardIndex++;
+        updateDealsCounter();
+        if (currentCardIndex >= filteredDeals.length) {
+          document.getElementById('noMoreCards').style.display = 'block';
+          document.getElementById('swipeButtons').style.display = 'none';
+        } else { buildCards(); }
+        if (direction === 'right' && swiped) {
+          showLikedToast(swiped);
+        }
+      }, 350);
+    }
+
+    // ===== ONBOARDING =====
+    let onboardStep = 1;
+    function nextOnboardStep(step) {
+      onboardStep = step;
+      document.querySelectorAll('.onboard-step').forEach(s => s.style.display = 'none');
+      document.getElementById('onboard-' + step).style.display = 'flex';
+      const dots = document.querySelectorAll('#onboard-dots .progress-dot');
+      dots.forEach((d, i) => {
+        d.className = 'progress-dot' + (i + 1 === step ? ' active' : i + 1 < step ? ' done' : '');
+      });
+    }
+
+    function toggleOption(el) { el.classList.toggle('selected'); }
+    function toggleChip(el) { el.classList.toggle('selected'); }
+    function toggleDestCard(el) {
+      const selected = document.querySelectorAll('.dest-card.selected');
+      if (!el.classList.contains('selected') && selected.length >= 5) return;
+      el.classList.toggle('selected');
+      const count = document.querySelectorAll('.dest-card.selected').length;
+      document.getElementById('destCount').textContent = count + ' of 5 selected';
+    }
+    function selectSingle(el, group) {
+      el.parentElement.querySelectorAll('.onboard-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    // ===== DEALS COUNTER =====
+    function updateDealsCounter() {
+      const remaining = filteredDeals.length - currentCardIndex;
+      const el = document.getElementById('dealsCountText');
+      if (el) el.textContent = remaining > 0 ? remaining + ' deal' + (remaining !== 1 ? 's' : '') + ' remaining' : '';
+    }
+
+    // ===== FILTER CHIPS =====
+    function filterDeals(el) {
+      document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+      const filter = el.dataset.filter;
+      if (filter === 'all') {
+        filteredDeals = [...deals];
+      } else {
+        filteredDeals = deals.filter(d => d.dealType === filter);
+      }
+      currentCardIndex = 0;
+      buildCards();
+      updateDealsCounter();
+      if (filteredDeals.length === 0) {
+        document.getElementById('noMoreCards').style.display = 'block';
+        document.getElementById('swipeButtons').style.display = 'none';
+      }
+    }
+
+    // ===== HISTORY =====
+    function buildHistory() {
+      const statusColors = {
+        'Booked': 'background:rgba(18,178,140,0.15); color:#12B28C;',
+        'Liked': 'background:rgba(129,140,248,0.15); color:#818cf8;',
+        'Skipped': 'background:rgba(138,138,138,0.1); color:#8A8A8A;'
+      };
+
+      // Build dynamic history from swipe interactions
+      const allHistory = [];
+      likedDeals.forEach(function(d) { allHistory.push({ deal: d, status: 'Liked' }); });
+      skippedDeals.forEach(function(d) { allHistory.push({ deal: d, status: 'Skipped' }); });
+      // Add some default history if no interactions yet
+      if (allHistory.length === 0) {
+        var defaults = ['Booked', 'Liked', 'Booked', 'Liked', 'Skipped', 'Liked'];
+        for (var i = 0; i < Math.min(6, deals.length); i++) {
+          allHistory.push({ deal: deals[i], status: defaults[i] || 'Liked' });
+        }
+      }
+
+      // Update stats
+      var shown = allHistory.length;
+      var liked = allHistory.filter(function(h) { return h.status === 'Liked'; }).length;
+      var booked = allHistory.filter(function(h) { return h.status === 'Booked'; }).length;
+      var skipped = allHistory.filter(function(h) { return h.status === 'Skipped'; }).length;
+
+      var statsEl = document.querySelector('#screen-deal-history .glass-card');
+      if (statsEl) {
+        statsEl.innerHTML =
+          '<div class="text-center"><div class="text-lg font-bold" style="color:#F5F0E8;">' + shown + '</div><div class="text-[10px]" style="color:#4A4A4A;">Shown</div></div>' +
+          '<div class="text-center"><div class="text-lg font-bold" style="color:#12B28C;">' + liked + '</div><div class="text-[10px]" style="color:#4A4A4A;">Liked</div></div>' +
+          '<div class="text-center"><div class="text-lg font-bold" style="color:#818cf8;">' + booked + '</div><div class="text-[10px]" style="color:#4A4A4A;">Booked</div></div>' +
+          '<div class="text-center"><div class="text-lg font-bold" style="color:#8A8A8A;">' + skipped + '</div><div class="text-[10px]" style="color:#4A4A4A;">Skipped</div></div>';
+      }
+
+      const list = document.getElementById('historyList');
+      let html = '';
+      allHistory.forEach(function(h) {
+        var d = h.deal;
+        var idx = deals.indexOf(d);
+        html += '<div class="history-item flex items-center gap-3" onclick="showDealDetail(' + idx + ')">';
+        html += '<div class="history-thumb dest-' + d.dest + '"><span>' + d.score + '%</span></div>';
+        html += '<div class="flex-1 min-w-0">';
+        html += '<div class="text-sm font-semibold truncate" style="color:#F5F0E8;">' + d.route + '</div>';
+        html += '<div class="text-xs truncate" style="color:#8A8A8A;">' + d.miles.replace(',000', 'K') + ' ' + d.program.split(' ')[0] + ' \u00B7 ' + d.cabin.split(' ')[0] + ' \u00B7 ' + d.dates.split(',')[0] + '</div>';
+        html += '</div>';
+        html += '<div class="flex flex-col items-end gap-1 flex-shrink-0">';
+        html += '<span class="text-[10px] px-2 py-0.5 rounded-full font-medium" style="' + statusColors[h.status] + '">' + h.status + '</span>';
+        html += '<span class="deal-type-badge deal-type-' + d.dealType + '" style="font-size:8px;padding:2px 6px;">' + d.dealTypeLabel + '</span>';
+        html += '</div></div>';
+      });
+      list.innerHTML = html;
+    }
+
+    // ===== FREQ CHIP SELECTION =====
+    function selectFreqChip(el) {
+      document.querySelectorAll('.freq-chip').forEach(function(c) {
+        c.style.background = '#1A1A1A';
+        c.style.color = '#8A8A8A';
+        c.classList.remove('active');
+      });
+      el.style.background = '#818cf8';
+      el.style.color = '#0D0D0D';
+      el.classList.add('active');
+    }
+
+    // ===== REPORT DEAL =====
+    function reportDeal() {
+      const overlay = document.createElement('div');
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:flex;align-items:center;justify-content:center;';
+      overlay.innerHTML = '<div style="background:#1A1A1A;border-radius:20px;padding:24px;width:300px;border:1px solid rgba(255,255,255,0.08);">' +
+        '<div class="text-sm font-bold mb-3" style="color:#F5F0E8;">Report This Deal</div>' +
+        '<div class="space-y-2">' +
+        '<div class="onboard-option text-xs" onclick="this.classList.toggle(\'selected\')" style="padding:10px 14px;">Deal expired / no longer available</div>' +
+        '<div class="onboard-option text-xs" onclick="this.classList.toggle(\'selected\')" style="padding:10px 14px;">Incorrect pricing or miles</div>' +
+        '<div class="onboard-option text-xs" onclick="this.classList.toggle(\'selected\')" style="padding:10px 14px;">Wrong route or dates</div>' +
+        '<div class="onboard-option text-xs" onclick="this.classList.toggle(\'selected\')" style="padding:10px 14px;">Other issue</div>' +
+        '</div>' +
+        '<button onclick="this.closest(\'div[style]\').remove()" class="w-full font-semibold py-3 rounded-xl text-sm mt-4" style="background:#818cf8;color:#0D0D0D;">Submit Report</button>' +
+        '<button onclick="this.closest(\'div[style*=fixed]\').remove()" class="w-full font-medium py-2 rounded-xl text-sm mt-2" style="color:#8A8A8A;">Cancel</button>' +
+        '</div>';
+      overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); });
+      document.body.appendChild(overlay);
+    }
+
+    // ===== LIKED TOAST =====
+    let likedDeals = [];
+    let skippedDeals = [];
+
+    function showLikedToast(deal) {
+      likedDeals.push(deal);
+      const toast = document.getElementById('likedToast');
+      const toastRoute = document.getElementById('toastRoute');
+      const toastScore = document.getElementById('toastScore');
+      toastRoute.textContent = deal.route;
+      toastScore.textContent = deal.score + '% match';
+      toast.style.display = 'flex';
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateY(0)';
+      clearTimeout(toast._timeout);
+      toast._timeout = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => { toast.style.display = 'none'; }, 300);
+      }, 2500);
+    }
+
+    function toastMessageConcierge() {
+      const toast = document.getElementById('likedToast');
+      toast.style.display = 'none';
+      if (likedDeals.length > 0) {
+        showDealDetail(deals.indexOf(likedDeals[likedDeals.length - 1]));
+      }
+    }
+
+    // ===== INIT =====
+    buildCards();
+    updateDealsCounter();
+    buildHistory();
+  </script>
+</body>
+</html>

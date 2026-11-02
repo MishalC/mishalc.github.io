@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S2 — Component Detail View</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../_shared/fonts.css">
+<link rel="stylesheet" href="tailwind.css">
+  <style>
+    .hl-highlight {
+      outline: 2px solid #4f46e5 !important;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.15) !important;
+      border-radius: inherit;
+      transition: outline 0.2s, box-shadow 0.2s;
+    }
+  </style>
+</head>
+<body class="bg-gray-300 min-h-screen font-body py-6">
+<a href="/prototypes/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:8px 12px;border-radius:999px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px/1.3 'Hanken Grotesk',system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #0006">Prototype by Mishal Chowdhury · names and data replaced · back to portfolio</a>
+
+  <div class="flex items-start justify-center gap-5 px-4">
+
+    
+    <div class="shrink-0" style="width:220px; position:sticky; top:24px;">
+      <div class="bg-white rounded-2xl shadow-md px-5 py-3 flex flex-wrap gap-2 items-center justify-center">
+        <span class="text-[10px] font-semibold text-gray-400 tracking-widest uppercase w-full text-center">DEMO — Switch Option</span>
+        <button onclick="loadOption('A')" id="dbtn-A" class="dbtn px-3 py-1 text-xs rounded-full border font-medium transition-all">Option A — Soneva Jani</button>
+        <button onclick="loadOption('B')" id="dbtn-B" class="dbtn px-3 py-1 text-xs rounded-full border font-medium transition-all">Option B — Six Senses</button>
+        <button onclick="loadOption('flight')" id="dbtn-flight" class="dbtn px-3 py-1 text-xs rounded-full border font-medium transition-all">Flight Component</button>
+      </div>
+    </div>
+
+    
+    <div class="relative bg-white overflow-hidden flex flex-col" style="width:390px; height:844px; border-radius:48px; border:10px solid #23293a; box-shadow:0 40px 100px rgba(0,0,0,0.4);">
+
+    
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-[#23293a] rounded-b-3xl z-30"></div>
+
+    
+    <div class="flex justify-between items-center px-7 pt-8 pb-1 bg-white shrink-0 relative z-10">
+      <span class="text-[11px] font-bold text-[#23293a]">9:41</span>
+      <div class="flex items-center gap-1.5">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+          <rect x="0" y="3.5" width="2.5" height="6.5" rx="0.8" fill="#23293a"/>
+          <rect x="3.5" y="2" width="2.5" height="8" rx="0.8" fill="#23293a"/>
+          <rect x="7" y="0.5" width="2.5" height="9.5" rx="0.8" fill="#23293a"/>
+          <rect x="10.5" y="0.5" width="2.5" height="9.5" rx="0.8" fill="#23293a" opacity="0.25"/>
+        </svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none">
+          <rect x="0.5" y="0.5" width="20" height="10" rx="3" stroke="#23293a" stroke-opacity="0.3"/>
+          <rect x="2" y="2" width="14" height="7" rx="1.5" fill="#23293a"/>
+        </svg>
+      </div>
+    </div>
+
+    
+    <div class="flex-1 overflow-y-auto">
+
+      
+      <div class="relative h-52 shrink-0 overflow-hidden" id="hero-carousel">
+        
+        <div id="hero-track" class="flex h-full transition-transform duration-300" style="width:400%"
+             ontouchstart="heroTouchStart(event)" ontouchend="heroTouchEnd(event)">
+          <div class="hero-slide h-full shrink-0" style="width:25%; background:linear-gradient(135deg,#1a4a6b,#2d7daa)"></div>
+          <div class="hero-slide h-full shrink-0" style="width:25%; background:linear-gradient(135deg,#2d7daa,#5ba3c9)"></div>
+          <div class="hero-slide h-full shrink-0" style="width:25%; background:linear-gradient(135deg,#1a6b5a,#2daa8d)"></div>
+          <div class="hero-slide h-full shrink-0" style="width:25%; background:linear-gradient(135deg,#4a3a6b,#7d5faa)"></div>
+        </div>
+        
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-black/10 to-black/60 pointer-events-none"></div>
+
+        
+        <button onclick="history.back()" class="absolute top-4 left-4 bg-white/20 backdrop-blur-sm rounded-full p-2 z-10">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+
+        
+        <div class="absolute top-4 right-4 z-10">
+          <span id="opt-badge" class="text-[10px] font-bold px-2.5 py-1 rounded-full text-white" style="background:#9c7956">OPT A</span>
+        </div>
+
+        
+        <div id="hero-dots" class="absolute bottom-14 left-1/2 -translate-x-1/2 z-10 flex gap-1.5">
+          <div class="hero-dot w-5 h-1.5 rounded-full bg-white transition-all"></div>
+          <div class="hero-dot w-1.5 h-1.5 rounded-full bg-white/40 transition-all"></div>
+          <div class="hero-dot w-1.5 h-1.5 rounded-full bg-white/40 transition-all"></div>
+          <div class="hero-dot w-1.5 h-1.5 rounded-full bg-white/40 transition-all"></div>
+        </div>
+
+        
+        <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+          <span id="hero-img-count" class="text-[9px] font-semibold px-2 py-0.5 rounded-full bg-black/30 backdrop-blur-sm text-white">1 / 4</span>
+        </div>
+
+        
+        <div class="absolute bottom-0 left-0 right-0 px-5 pb-4 z-10">
+          <div id="comp-type-badge" class="inline-block text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-400/90 text-white mb-1.5">🏨 HOTEL</div>
+          <div id="hero-title" class="text-white text-xl font-semibold leading-tight">Soneva Jani</div>
+          <div id="hero-sub" class="text-white/75 text-xs mt-0.5">Noonu Atoll, Maldives · Overwater Villa</div>
+        </div>
+
+        
+        <div id="opt-nav" class="absolute bottom-4 right-4 z-10 flex gap-2">
+          <button onclick="loadOption('A')" id="opt-prev-btn" class="bg-white/25 backdrop-blur-sm rounded-full p-1.5 hidden">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </button>
+          <button onclick="loadOption('B')" id="opt-next-btn" class="bg-white/25 backdrop-blur-sm rounded-full p-1.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M9 18L15 12L9 6" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      
+      <div class="bg-white px-5 pt-5 pb-28">
+
+        
+        <div id="quick-stats" class="flex gap-2 mb-5 overflow-x-auto pb-1">
+          
+        </div>
+
+        
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <div id="comp-status-dot" class="w-2 h-2 rounded-full bg-gray-300"></div>
+            <span id="comp-status-text" class="text-[11px] font-semibold text-gray-500">Pending member decision</span>
+          </div>
+          <button onclick="window.location.href='s3-comment-sheet.html?component=' + encodeURIComponent(OPTIONS[currentOpt].title)" class="flex items-center gap-1 text-[10px] text-[#4f46e5] font-semibold">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M21 15C21 16.1 20.1 17 19 17H7L3 21V5C3 3.9 3.9 3 5 3H19C20.1 3 21 3.9 21 5V15Z" stroke="#4f46e5" stroke-width="2"/></svg>
+            Comment
+          </button>
+        </div>
+
+        
+        <div id="comp-details" class="mb-5 border border-[#eae3d7] rounded-2xl overflow-hidden">
+          
+        </div>
+
+        
+        <div class="mb-5" id="hl-why-picked">
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-6 h-6 rounded-full bg-[#4f46e5] flex items-center justify-center shrink-0">
+              <span class="text-[9px] font-bold text-white">A</span>
+            </div>
+            <div>
+              <div class="text-[10px] font-semibold tracking-[0.15em] text-gray-400 uppercase">Why We Picked This</div>
+              <div class="text-[9px] text-gray-400">Your advisor</div>
+            </div>
+          </div>
+          <p id="comp-description" class="text-[13px] text-[#23293a] leading-relaxed mb-3"></p>
+          <div id="why-picked-bullets" class="space-y-2.5">
+            
+          </div>
+          <button id="read-more-btn" onclick="toggleReadMore()" class="mt-2 text-[11px] font-semibold text-[#4f46e5]">Read more</button>
+        </div>
+
+        
+        <div class="mb-5" id="hl-pricing">
+          <div class="text-[10px] font-semibold tracking-[0.15em] text-gray-400 uppercase mb-2">Pricing Breakdown</div>
+          <div id="pricing-breakdown" class="border border-[#eae3d7] rounded-2xl overflow-hidden">
+            
+          </div>
+        </div>
+
+        
+        <div class="mb-5" id="hl-comments-preview">
+          <div class="flex items-center justify-between mb-2">
+            <div class="text-[10px] font-semibold tracking-[0.15em] text-gray-400 uppercase">Comments (2)</div>
+            <button onclick="window.location.href='s3-comment-sheet.html?component=' + encodeURIComponent(OPTIONS[currentOpt].title)" class="text-[10px] font-semibold text-[#4f46e5]">View all →</button>
+          </div>
+          <div class="space-y-2.5">
+            
+            <div class="bg-[#f6f4f0] rounded-2xl px-3.5 py-3 border border-[#eae3d7]">
+              <div class="flex items-center gap-2 mb-1.5">
+                <div class="w-5 h-5 rounded-full bg-[#23293a] flex items-center justify-center shrink-0"><span class="text-[7px] text-white font-bold">M</span></div>
+                <span class="text-[11px] font-semibold text-[#23293a]">You</span>
+                <span class="text-[9px] text-gray-400">· 2d ago</span>
+                <span class="text-[8px] font-semibold px-1.5 py-0.5 rounded-full ml-auto" style="background:#12B28C15; color:#12B28C; border:1px solid #12B28C30">Addressed</span>
+              </div>
+              <p class="text-[11px] text-[#23293a] leading-relaxed">Is the slide available in all room categories?</p>
+              
+              <div class="mt-2 pl-3 border-l-2 border-[#eae3d7]">
+                <div class="flex items-center gap-1.5 mb-0.5">
+                  <div class="w-4 h-4 rounded-full bg-[#4f46e5] flex items-center justify-center shrink-0"><span class="text-[6px] text-white font-bold">A</span></div>
+                  <span class="text-[10px] font-semibold text-[#23293a]">Advisor</span>
+                  <span class="text-[8px] text-gray-400">· 1d ago</span>
+                </div>
+                <p class="text-[10px] text-gray-600 leading-relaxed">Yes! All overwater villas have slides. The 2-bedroom ones have the best reef access too.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    
+    <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-[#eae3d7] px-5 pt-3 pb-4" id="hl-action-bar">
+      
+      <button onclick="askAboutThis()" class="w-full flex items-center justify-center gap-2 py-2 mb-2.5 rounded-xl bg-[#f6f4f0] hover:bg-[#eae3d7] transition-colors">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#4f46e5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="text-[12px] font-semibold text-[#23293a]">Ask about this option</span>
+      </button>
+      <div class="flex gap-3">
+        <button onclick="handleDecision('declined')" class="flex-1 py-3 rounded-2xl border-2 border-gray-200 text-[13px] font-semibold text-gray-600 hover:bg-red-50 hover:border-red-200 hover:text-red-500 transition-colors">Decline</button>
+        <button onclick="handleDecision('request-changes')" class="flex-1 py-3 rounded-2xl border-2 border-[#4f46e5]/30 text-[13px] font-semibold text-[#4f46e5] hover:bg-[#4f46e5]/5 transition-colors">Changes</button>
+        <button onclick="handleDecision('approved')" class="flex-1 py-3 rounded-2xl text-[13px] font-semibold text-white transition-colors" style="background:#12B28C;">Approve</button>
+      </div>
+    </div>
+
+    </div>
+
+    
+
+  </div>
+
+  <script>
+    const OPTIONS = {
+      'A': {
+        heroBg: 'linear-gradient(135deg,#1a4a6b,#2d7daa)',
+        optBadge: 'OPT A',
+        typeBadge: '🏨 HOTEL',
+        title: 'Soneva Jani',
+        sub: 'Noonu Atoll, Maldives · Overwater Villa',
+        description: 'Soneva Jani is an ultra-luxury overwater villa resort in the Noonu Atoll. Each villa features a private pool, open-air bathroom, retractable roof for stargazing, and direct lagoon access via private slide. The resort enforces a no-shoes, no-news policy for full immersion.',
+        stats: [
+          { label: 'Nights', val: '7' },
+          { label: 'From', val: '$4,200/nt' },
+          { label: 'Type', val: 'Overwater' },
+          { label: 'Stars', val: '★ 5' }
+        ],
+        details: [
+          { label: 'Check-in', val: 'Mar 15, 3:00 PM' },
+          { label: 'Check-out', val: 'Mar 22, 12:00 PM' },
+          { label: 'Room', val: '2-Bed Water Retreat' },
+          { label: 'Board', val: 'Full Board' }
+        ],
+        pricing: {
+          lines: [
+            { label: '2-Bed Water Retreat × 7 nights', val: '$29,400' },
+            { label: 'Full board supplement', val: 'Included' },
+            { label: 'Return speedboat transfers (2 pax)', val: '$480' },
+            { label: 'Resort levy & taxes', val: '$2,116' }
+          ],
+          total: '$31,996',
+          perNight: '$4,571/nt',
+          note: 'Paying with points is not available for this property'
+        },
+        whyPicked: [
+          { icon: '🌟', title: 'Top Pick', text: 'Retractable roof villas are extraordinary for stargazing — a truly one-of-a-kind experience.' },
+          { icon: '🐠', title: 'Pristine Reef', text: 'House reef is one of the best in the Maldives. Snorkelling equipment and guided tours included.' },
+          { icon: '🍽', title: 'Full Board', text: 'All meals included — breakfast, lunch, dinner and non-alcoholic beverages.' },
+          { icon: '🏄', title: 'Activities', text: 'Non-motorised water sports, stargazing experience, and return speedboat transfers all included.' },
+          { icon: '🏝', title: 'Philosophy', text: 'No-shoes, no-news policy for full immersion — guests consistently rate it the most relaxing resort stay.' }
+        ],
+        showOptNav: true
+      },
+      'B': {
+        heroBg: 'linear-gradient(135deg,#5b2a82,#9b6fc8)',
+        optBadge: 'OPT B',
+        typeBadge: '🏨 HOTEL',
+        title: 'Six Senses Laamu',
+        sub: 'Laamu Atoll, Maldives · Lagoon Villa',
+        description: 'Six Senses Laamu is set on one of the Maldives\' largest natural atolls, offering a sustainability-first luxury experience. The overwater and beach villas blend organic architecture with world-class wellness programming and an unparalleled house reef.',
+        stats: [
+          { label: 'Nights', val: '7' },
+          { label: 'From', val: '$3,100/nt' },
+          { label: 'Type', val: 'Lagoon' },
+          { label: 'Stars', val: '★ 5' }
+        ],
+        details: [
+          { label: 'Check-in', val: 'Mar 15, 3:00 PM' },
+          { label: 'Check-out', val: 'Mar 22, 12:00 PM' },
+          { label: 'Room', val: 'Lagoon Villa w/ Pool' },
+          { label: 'Board', val: 'B&B' }
+        ],
+        pricing: {
+          lines: [
+            { label: 'Lagoon Villa w/ Pool × 7 nights', val: '$21,700' },
+            { label: 'Half board upgrade', val: '$1,050' },
+            { label: 'Return seaplane transfers (2 pax)', val: '$960' },
+            { label: 'Green tax & service', val: '$1,520' }
+          ],
+          total: '$25,230',
+          perNight: '$3,604/nt',
+          note: null
+        },
+        whyPicked: [
+          { icon: '💰', title: 'Better Value', text: 'Same quality tier as Soneva Jani at $1,100/night less — best value luxury option.' },
+          { icon: '🧘', title: 'Wellness Leader', text: 'Wellness programme is unmatched — daily yoga, meditation classes, and full spa access included.' },
+          { icon: '🐠', title: 'World-Class Reef', text: 'House reef is genuinely one of the best in the Maldives. Kayaks and paddle boards complimentary.' },
+          { icon: '🌿', title: 'Sustainability', text: 'Sustainability-first philosophy with organic architecture and zero-waste initiatives.' },
+          { icon: '✈️', title: 'Transfers', text: 'Return seaplane transfers included — scenic 35-minute flight over the atoll chain.' }
+        ],
+        showOptNav: true
+      },
+      'flight': {
+        heroBg: 'linear-gradient(135deg,#1a3a5c,#2e5c8a)',
+        optBadge: 'SINGLE',
+        typeBadge: '✈ FLIGHT',
+        title: 'SYD → MLE via SIN',
+        sub: 'Singapore Airlines · Business Class',
+        description: 'Direct to Singapore then onward to Malé. This routing via Singapore Airlines consistently ranks as one of the best business class products globally, with the Suites available on the SYD–SIN leg.',
+        stats: [
+          { label: 'Duration', val: '14h 20m' },
+          { label: 'Class', val: 'Business' },
+          { label: 'Stops', val: '1 (SIN)' },
+          { label: 'Points', val: '120K' }
+        ],
+        details: [
+          { label: 'Departs', val: 'Mar 15, 10:30 AM' },
+          { label: 'Arrives', val: 'Mar 16, 11:50 PM' },
+          { label: 'Aircraft', val: 'A380 + A330' },
+          { label: 'Seats', val: '4A & 4B' }
+        ],
+        pricing: {
+          lines: [
+            { label: 'SYD → SIN (SQ232) Business', val: '60K pts' },
+            { label: 'SIN → MLE (SQ452) Business', val: '35K pts' },
+            { label: 'Taxes & surcharges (per pax)', val: '$385' },
+            { label: 'Seat selection (4A & 4B)', val: 'Included' }
+          ],
+          total: '120K pts + $770',
+          perNight: null,
+          note: 'Points transferred from Amex MR — allow 24-48h for transfer'
+        },
+        whyPicked: [
+          { icon: '✈️', title: 'Best-in-Class', text: 'SQ on this routing is exceptional — consistently ranked top 3 business class globally.' },
+          { icon: '🛏', title: 'Lie-Flat', text: 'Lie-flat beds on both legs. The SYD–SIN A380 Suites are one of the most comfortable long-haul products.' },
+          { icon: '🍸', title: 'Lounge Access', text: 'Priority lounge access at SYD and SIN. SilverKris Lounge at Changi is outstanding.' },
+          { icon: '💎', title: 'Points Value', text: '120K points for this routing is excellent value — cash fares average $8,500+ return.' }
+        ],
+        showOptNav: false
+      }
+    };
+
+    let currentOpt = 'A';
+
+    function loadOption(key) {
+      const o = OPTIONS[key];
+      currentOpt = key;
+      heroIdx = 0;
+      document.getElementById('opt-badge').textContent = o.optBadge;
+      document.getElementById('comp-type-badge').textContent = o.typeBadge;
+      document.getElementById('hero-title').textContent = o.title;
+      document.getElementById('hero-sub').textContent = o.sub;
+      document.getElementById('comp-description').textContent = o.description;
+
+      // Quick stats
+      const stats = document.getElementById('quick-stats');
+      stats.innerHTML = o.stats.map(s => `
+        <div class="shrink-0 bg-[#f6f4f0] rounded-xl px-3 py-2 text-center">
+          <div class="text-[13px] font-semibold text-[#23293a]">${s.val}</div>
+          <div class="text-[9px] text-gray-400 mt-0.5">${s.label}</div>
+        </div>
+      `).join('');
+
+      // Details grid
+      const details = document.getElementById('comp-details');
+      details.innerHTML = o.details.map((d, i) => `
+        <div class="flex justify-between items-center px-4 py-3 ${i < o.details.length - 1 ? 'border-b border-[#eae3d7]' : ''}">
+          <span class="text-[11px] text-gray-400">${d.label}</span>
+          <span class="text-[12px] font-semibold text-[#23293a]">${d.val}</span>
+        </div>
+      `).join('');
+
+      // Why we picked this — structured advisor reasoning
+      const whyList = document.getElementById('why-picked-bullets');
+      whyList.innerHTML = (o.whyPicked || []).map(b => `
+        <div class="flex items-start gap-2.5 bg-[#f6f4f0] rounded-xl px-3.5 py-2.5 border border-[#eae3d7]">
+          <span class="text-[14px] shrink-0 mt-0.5">${b.icon}</span>
+          <div class="flex-1 min-w-0">
+            <div class="text-[11px] font-semibold text-[#23293a] mb-0.5">${b.title}</div>
+            <p class="text-[11px] text-gray-600 leading-relaxed">${b.text}</p>
+          </div>
+        </div>
+      `).join('');
+
+      // Pricing breakdown
+      const pricingEl = document.getElementById('pricing-breakdown');
+      if (o.pricing) {
+        const p = o.pricing;
+        let html = p.lines.map((l, i) => `
+          <div class="flex justify-between items-center px-4 py-2.5 ${i < p.lines.length - 1 ? 'border-b border-[#eae3d7]' : ''}">
+            <span class="text-[11px] text-gray-500">${l.label}</span>
+            <span class="text-[11px] font-medium text-[#23293a]">${l.val}</span>
+          </div>
+        `).join('');
+        html += `<div class="flex justify-between items-center px-4 py-3 bg-[#23293a]">
+          <span class="text-[11px] font-semibold text-white">Total</span>
+          <div class="text-right">
+            <span class="text-[13px] font-bold text-white">${p.total}</span>
+            ${p.perNight ? `<span class="text-[10px] text-white/60 ml-1.5">${p.perNight}</span>` : ''}
+          </div>
+        </div>`;
+        if (p.note) {
+          html += `<div class="px-4 py-2 bg-[#f6f4f0] border-t border-[#eae3d7]"><span class="text-[9px] text-gray-400">${p.note}</span></div>`;
+        }
+        pricingEl.innerHTML = html;
+      }
+
+      // Opt nav
+      const prevBtn = document.getElementById('opt-prev-btn');
+      const nextBtn = document.getElementById('opt-next-btn');
+      if (prevBtn && nextBtn) {
+        const showNav = o.showOptNav;
+        prevBtn.classList.toggle('hidden', !showNav || key === 'A');
+        nextBtn.classList.toggle('hidden', !showNav || key === 'B');
+      }
+
+      // Update hero carousel for new option
+      updateHeroCarousel();
+
+      // Demo buttons
+      document.querySelectorAll('.dbtn').forEach(btn => {
+        btn.className = 'dbtn px-3 py-1 text-xs rounded-full border border-gray-300 text-gray-600 font-medium transition-all';
+      });
+      const ab = document.getElementById('dbtn-' + key);
+      if (ab) { ab.style.background = '#4f46e5'; ab.style.borderColor = '#4f46e5'; ab.style.color = 'white'; }
+    }
+
+    function handleDecision(decision) {
+      if (decision === 'request-changes') {
+        window.location.href = 's3-comment-sheet.html?component=' + encodeURIComponent(OPTIONS[currentOpt].title) + '&action=request-changes';
+        return;
+      }
+      const labels = { approved: 'Approved', declined: 'Declined' };
+      const colors = { approved: '#12B28C', declined: '#e53e3e' };
+      showInlineToast(labels[decision], colors[decision]);
+    }
+
+    function showInlineToast(label, color) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-16 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl text-white text-[13px] font-semibold shadow-lg transition-all';
+      toast.style.background = color;
+      toast.textContent = label + ' — your advisor has been notified';
+      document.querySelector('.relative.bg-white').appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 2500);
+    }
+
+    // Ask about this (TM4) — opens component thread pre-scoped to this option
+    function askAboutThis() {
+      window.location.href = 's3-comment-sheet.html?component=' + encodeURIComponent(OPTIONS[currentOpt].title);
+    }
+
+    function toggleReadMore() {
+      const btn = document.getElementById('read-more-btn');
+      btn.textContent = btn.textContent === 'Read more' ? 'Read less' : 'Read more';
+    }
+
+    // ── Hero Image Carousel ──
+    let heroIdx = 0;
+    let heroTouchX = 0;
+    const heroImages = {
+      'A': [
+        'linear-gradient(135deg,#1a4a6b,#2d7daa)',
+        'linear-gradient(135deg,#2d7daa,#5ba3c9)',
+        'linear-gradient(135deg,#1a6b5a,#2daa8d)',
+        'linear-gradient(135deg,#4a3a6b,#7d5faa)'
+      ],
+      'B': [
+        'linear-gradient(135deg,#5b2a82,#9b6fc8)',
+        'linear-gradient(135deg,#9b6fc8,#c9a4e8)',
+        'linear-gradient(135deg,#2a5b82,#6f9bc8)',
+        'linear-gradient(135deg,#825b2a,#c89b6f)'
+      ],
+      'flight': [
+        'linear-gradient(135deg,#1a3a5c,#2e5c8a)',
+        'linear-gradient(135deg,#2e5c8a,#4a7fb5)',
+        'linear-gradient(135deg,#3a5c1a,#5c8a2e)'
+      ]
+    };
+
+    function heroTouchStart(e) { heroTouchX = e.touches[0].clientX; }
+    function heroTouchEnd(e) {
+      const diff = heroTouchX - e.changedTouches[0].clientX;
+      const imgs = heroImages[currentOpt] || heroImages['A'];
+      if (Math.abs(diff) > 40) {
+        if (diff > 0 && heroIdx < imgs.length - 1) heroIdx++;
+        else if (diff < 0 && heroIdx > 0) heroIdx--;
+        updateHeroCarousel();
+      }
+    }
+
+    function updateHeroCarousel() {
+      const imgs = heroImages[currentOpt] || heroImages['A'];
+      const track = document.getElementById('hero-track');
+      track.style.width = (imgs.length * 100) + '%';
+      track.innerHTML = imgs.map(bg => `<div class="hero-slide h-full shrink-0" style="width:${100/imgs.length}%; background:${bg}"></div>`).join('');
+      track.style.transform = 'translateX(-' + (heroIdx * (100/imgs.length)) + '%)';
+
+      // Dots
+      const dotsWrap = document.getElementById('hero-dots');
+      dotsWrap.innerHTML = imgs.map((_, i) =>
+        `<div class="hero-dot ${i === heroIdx ? 'w-5' : 'w-1.5'} h-1.5 rounded-full ${i === heroIdx ? 'bg-white' : 'bg-white/40'} transition-all"></div>`
+      ).join('');
+
+      // Count pill
+      document.getElementById('hero-img-count').textContent = (heroIdx + 1) + ' / ' + imgs.length;
+    }
+
+    // Read opt from URL param
+    const params = new URLSearchParams(window.location.search);
+    const optParam = params.get('opt') || 'A';
+    loadOption(optParam);
+
+    const HIGHLIGHT_MAP = {
+      'reasoning':  ['#hl-why-picked'],
+      'photos':     ['#hero-carousel'],
+      'actions':    ['#hl-action-bar'],
+      'compare':    ['#opt-nav', '#opt-badge'],
+      'comments':   ['#hl-comments-preview'],
+      'addressed':  ['.rounded-full[style*="12B28C"]'],
+      'autoupdate': ['#hl-action-bar']
+    };
+
+    function toggleHighlight(checkbox) {
+      const key = checkbox.dataset.hl;
+      if (!key || !HIGHLIGHT_MAP[key]) return;
+      const selectors = HIGHLIGHT_MAP[key];
+      selectors.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => {
+          if (checkbox.checked) {
+            if (!el.style.position || el.style.position === 'static') el.style.position = 'relative';
+            el.classList.add('hl-highlight');
+          } else {
+            const stillHighlighted = Array.from(document.querySelectorAll('.hl-check:checked')).some(cb => {
+              const cbKey = cb.dataset.hl;
+              if (!cbKey || cbKey === key) return false;
+              const cbSels = HIGHLIGHT_MAP[cbKey] || [];
+              return cbSels.some(s => { try { return el.matches(s); } catch(e) { return false; } });
+            });
+            if (!stillHighlighted) el.classList.remove('hl-highlight');
+          }
+        });
+      });
+    }
+
+    function updateCount() {
+      const total = document.querySelectorAll('.hl-check').length;
+      const checked = document.querySelectorAll('.hl-check:checked').length;
+      const counter = document.getElementById('hl-counter');
+      if (!counter) return;
+      counter.textContent = checked + ' / ' + total;
+      counter.style.color = checked === total ? '#12B28C' : '#9ca3af';
+    }
+
+    updateCount();
+  </script>
+
+</body>
+</html>

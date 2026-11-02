@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>S3 — Comment Sheet</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../_shared/fonts.css">
+<link rel="stylesheet" href="tailwind.css">
+  <style>
+    .hl-highlight {
+      outline: 2px solid #4f46e5 !important;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 4px rgba(79,70,229,0.15) !important;
+      border-radius: inherit;
+      transition: outline 0.2s, box-shadow 0.2s;
+    }
+  </style>
+</head>
+<body class="bg-gray-300 min-h-screen font-body flex items-start justify-center gap-5 px-4 py-6">
+<a href="/prototypes/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:8px 12px;border-radius:999px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px/1.3 'Hanken Grotesk',system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #0006">Prototype by Mishal Chowdhury · names and data replaced · back to portfolio</a>
+
+  
+  <div class="shrink-0" style="width:220px; position:sticky; top:24px;">
+    <div class="bg-white rounded-2xl shadow-md px-4 py-3">
+      <span class="text-[10px] font-semibold text-gray-400 tracking-widest uppercase block text-center mb-2">S3 — Comments</span>
+      <p class="text-[9px] text-gray-400 text-center">Component-level comments with review status lifecycle</p>
+    </div>
+  </div>
+
+  
+  <div class="relative overflow-hidden flex flex-col" style="width:390px; height:844px; border-radius:48px; border:10px solid #23293a; box-shadow:0 40px 100px rgba(0,0,0,0.4); background:#f6f4f0;">
+
+    
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-[#23293a] rounded-b-3xl z-30"></div>
+
+    
+    <div class="flex justify-between items-center px-7 pt-8 pb-1 bg-[#f6f4f0] shrink-0">
+      <span class="text-[11px] font-bold text-[#23293a]">9:41</span>
+      <div class="flex items-center gap-1.5">
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+          <rect x="0" y="3.5" width="2.5" height="6.5" rx="0.8" fill="#23293a"/>
+          <rect x="3.5" y="2" width="2.5" height="8" rx="0.8" fill="#23293a"/>
+          <rect x="7" y="0.5" width="2.5" height="9.5" rx="0.8" fill="#23293a"/>
+        </svg>
+        <svg width="24" height="11" viewBox="0 0 24 11" fill="none">
+          <rect x="0.5" y="0.5" width="20" height="10" rx="3" stroke="#23293a" stroke-opacity="0.3"/>
+          <rect x="2" y="2" width="14" height="7" rx="1.5" fill="#23293a"/>
+        </svg>
+      </div>
+    </div>
+
+    
+    <div class="flex items-center justify-between px-4 py-3 bg-[#f6f4f0] border-b border-[#eae3d7] shrink-0">
+      <a href="s1-trip-page.html" class="p-1.5 rounded-xl hover:bg-[#eae3d7] transition-colors">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 18L9 12L15 6" stroke="#23293a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <div class="text-center">
+        <div class="text-[9px] font-semibold text-gray-400 tracking-[0.18em] uppercase" id="sheet-eyebrow">COMPONENT COMMENTS</div>
+        <div class="text-[15px] font-semibold text-[#23293a]" id="sheet-title">Soneva Jani</div>
+      </div>
+      <button class="p-1.5 rounded-xl hover:bg-[#eae3d7] transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#23293a" stroke-width="1.8"/><path d="M12 16V12M12 8H12.01" stroke="#23293a" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+
+    
+    <div id="context-card" class="mx-4 mt-3 mb-1">
+      <div class="bg-white rounded-xl px-3.5 py-3 border border-[#eae3d7] flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl shrink-0" style="background:linear-gradient(135deg,#1a4a6b,#2d7daa)"></div>
+        <div class="flex-1 min-w-0">
+          <div class="text-[9px] font-semibold text-gray-400 tracking-wide uppercase">Component Comments</div>
+          <div class="text-[12px] font-semibold text-[#23293a] truncate">Soneva Jani — Option A</div>
+          <div class="text-[10px] text-gray-400">Day 1 · Hotel · Pending</div>
+        </div>
+        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full text-white" style="background:#9c7956">OPT A</span>
+      </div>
+    </div>
+
+    
+    <div id="comment-filter" class="mx-4 mt-2 mb-1">
+      <div class="flex items-center justify-between">
+        <div class="flex gap-1">
+          <button onclick="setFilter('all')" id="filter-all" class="filter-btn px-3 py-1 text-[10px] font-semibold rounded-full transition-all">All (4)</button>
+          <button onclick="setFilter('open')" id="filter-open" class="filter-btn px-3 py-1 text-[10px] font-semibold rounded-full transition-all">Open (2)</button>
+        </div>
+        <div id="filter-summary" class="text-[9px] text-gray-400">2 open · 1 addressed · 1 won't address</div>
+      </div>
+    </div>
+
+    
+    <div id="component-comments-view" class="flex-1 flex flex-col overflow-hidden">
+      
+      <div class="flex-1 overflow-y-auto px-4 space-y-3 py-3" id="comments-list">
+        
+      </div>
+
+      
+      <div id="hl-comment-input" class="bg-white border-t border-[#eae3d7] px-4 py-3 shrink-0">
+        <div id="comment-tags-bar" class="flex gap-1.5 mb-2 hidden">
+          
+          <span id="prefilled-tag" class="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-[#4f46e5]/10 text-[#4f46e5] border border-[#4f46e5]/30 flex items-center gap-1">
+            Needs Changes
+            <button onclick="removeTag()" class="hover:text-[#4f46e5]">&times;</button>
+          </span>
+        </div>
+        <div class="flex items-end gap-2">
+          <div class="flex-1 bg-[#f6f4f0] rounded-2xl px-4 py-2.5 border border-[#eae3d7]">
+            <textarea id="comment-input" rows="1" placeholder="Add a comment..." class="w-full bg-transparent text-[13px] text-[#23293a] placeholder-gray-400 outline-none resize-none leading-relaxed font-body" oninput="autoResize(this)" onkeydown="handleCommentKey(event)"></textarea>
+          </div>
+          <button onclick="postComment()" class="p-2.5 rounded-2xl shrink-0 transition-all" style="background:#4f46e5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  
+
+  <script>
+    const COMPONENT_COMMENTS = [
+      {
+        id: 1,
+        author: 'You',
+        avatar: 'M',
+        avatarBg: '#23293a',
+        text: 'Is the slide available in all room categories?',
+        time: '2 days ago',
+        commentType: 'member',
+        reviewStatus: 'addressed',
+        reply: {
+          author: 'Your advisor',
+          avatar: 'S',
+          avatarBg: '#4f46e5',
+          text: 'Yes! All overwater villas have water slides. The 2-bed Water Retreats actually have a double slide.',
+          time: '1 day ago'
+        }
+      },
+      {
+        id: 2,
+        author: 'You',
+        avatar: 'M',
+        avatarBg: '#23293a',
+        text: "What's included in the rate — is dining separate?",
+        time: '1 day ago',
+        commentType: 'member',
+        reviewStatus: 'reviewing',
+        reply: null
+      },
+      {
+        id: 3,
+        author: 'Your advisor',
+        avatar: 'S',
+        avatarBg: '#4f46e5',
+        text: 'The rate includes full board — breakfast, lunch, dinner and non-alcoholic beverages. Wine and spirits are extra.',
+        time: '1 day ago',
+        commentType: 'member',
+        reviewStatus: 'addressed',
+        reply: null
+      },
+      {
+        id: 4,
+        author: 'You',
+        avatar: 'M',
+        avatarBg: '#23293a',
+        text: 'Can we do an early check-in? Our flight lands at 11:50 PM the night before.',
+        time: '6 hours ago',
+        commentType: 'member',
+        reviewStatus: 'wont-address',
+        reply: {
+          author: 'Your advisor',
+          avatar: 'S',
+          avatarBg: '#4f46e5',
+          text: "Early check-in isn't guaranteed but I've flagged it with the resort. They'll do their best to accommodate.",
+          time: '4 hours ago'
+        }
+      },
+      {
+        id: 5,
+        author: 'Your advisor',
+        avatar: 'S',
+        avatarBg: '#4f46e5',
+        text: 'Internal: confirm villa assignment with resort ops before sharing final room number with client.',
+        time: '3 hours ago',
+        commentType: 'internal',
+        reviewStatus: null,
+        reply: null
+      }
+    ];
+
+    const STATUS_CONFIG = {
+      null: { label: 'New', bg: '#f6f4f015', text: '#9ca3af', border: '#9ca3af30' },
+      'reviewing': { label: 'Reviewing', bg: '#4f46e515', text: '#4f46e5', border: '#4f46e530' },
+      'addressed': { label: 'Addressed', bg: '#12B28C15', text: '#12B28C', border: '#12B28C30' },
+      'wont-address': { label: "Won't Address", bg: '#9ca3af15', text: '#6b7280', border: '#9ca3af30' }
+    };
+
+    let currentFilter = 'all';
+
+    function renderComments() {
+      const list = document.getElementById('comments-list');
+      // Filter out internal comments (ops-only) — members should never see these
+      let comments = COMPONENT_COMMENTS.filter(c => c.commentType !== 'internal');
+
+      if (currentFilter === 'open') {
+        comments = comments.filter(c => c.reviewStatus === null || c.reviewStatus === 'reviewing');
+      }
+
+      list.innerHTML = comments.map(c => renderComment(c)).join('');
+      setTimeout(() => { list.scrollTop = 0; }, 50);
+    }
+
+    function renderComment(comment) {
+      const sc = STATUS_CONFIG[comment.reviewStatus] || STATUS_CONFIG[null];
+      const isAddressed = comment.reviewStatus === 'addressed';
+      const muted = isAddressed ? 'opacity-60' : '';
+      const strikeClass = isAddressed ? 'line-through' : '';
+      const replyHtml = comment.reply ? `
+        <div class="ml-8 mt-2">
+          <div class="flex items-start gap-2">
+            <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5" style="background:${comment.reply.avatarBg}">
+              <span class="text-[7px] text-white font-bold">${comment.reply.avatar}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-[10px] font-semibold text-[#23293a]">${comment.reply.author}</span>
+                <span class="text-[9px] text-gray-400">${comment.reply.time}</span>
+              </div>
+              <p class="text-[12px] text-gray-500 leading-relaxed">${comment.reply.text}</p>
+            </div>
+          </div>
+        </div>
+      ` : '';
+
+      return `
+        <div class="bg-white rounded-2xl border border-[#eae3d7] px-4 py-3.5 shadow-sm ${muted}">
+          <div class="flex items-start gap-2.5">
+            <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5" style="background:${comment.avatarBg}">
+              <span class="text-[8px] text-white font-bold">${comment.avatar}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] font-semibold text-[#23293a]">${comment.author}</span>
+                  <span class="text-[9px] text-gray-400">${comment.time}</span>
+                </div>
+                <span class="text-[8px] font-semibold px-2 py-0.5 rounded-full" style="background:${sc.bg}; color:${sc.text}; border:1px solid ${sc.border}">${sc.label}</span>
+              </div>
+              <p class="text-[12px] text-[#23293a] leading-relaxed ${strikeClass}">${comment.text}</p>
+            </div>
+          </div>
+          ${replyHtml}
+          <div class="flex items-center gap-4 mt-2.5 ml-9">
+            <button class="text-[10px] font-semibold text-gray-400 hover:text-[#4f46e5]">Reply</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // ── Filter ──
+    function getFilterCounts() {
+      const visible = COMPONENT_COMMENTS.filter(c => c.commentType !== 'internal');
+      const total = visible.length;
+      const open = visible.filter(c => c.reviewStatus === null || c.reviewStatus === 'reviewing').length;
+      const addressed = visible.filter(c => c.reviewStatus === 'addressed').length;
+      const wont = visible.filter(c => c.reviewStatus === 'wont-address').length;
+      return { total, open, addressed, wont };
+    }
+
+    function updateFilterCounts() {
+      const counts = getFilterCounts();
+      document.getElementById('filter-all').textContent = 'All (' + counts.total + ')';
+      document.getElementById('filter-open').textContent = 'Open (' + counts.open + ')';
+      document.getElementById('filter-summary').textContent =
+        counts.open + ' open \u00b7 ' + counts.addressed + ' addressed \u00b7 ' + counts.wont + " won't address";
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      renderComments();
+      updateFilterCounts();
+
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.style.background = '';
+        btn.style.color = '';
+        btn.className = 'filter-btn px-3 py-1 text-[10px] font-semibold rounded-full transition-all border border-[#eae3d7] text-gray-500';
+      });
+      const ab = document.getElementById('filter-' + filter);
+      if (ab) {
+        ab.style.background = '#23293a';
+        ab.style.color = 'white';
+        ab.style.borderColor = '#23293a';
+      }
+    }
+
+    // ── Comment post ──
+    function postComment() {
+      const input = document.getElementById('comment-input');
+      const text = input.value.trim();
+      if (!text) return;
+
+      COMPONENT_COMMENTS.push({
+        id: COMPONENT_COMMENTS.length + 1,
+        author: 'You',
+        avatar: 'M',
+        avatarBg: '#23293a',
+        text: text,
+        time: 'Just now',
+        commentType: 'member',
+        reviewStatus: null,
+        reply: null
+      });
+
+      input.value = '';
+      input.style.height = 'auto';
+      removeTag();
+      renderComments();
+      // Scroll to bottom
+      const list = document.getElementById('comments-list');
+      setTimeout(() => { list.scrollTop = list.scrollHeight; }, 50);
+    }
+
+    // ── Tag management (for Request Changes flow) ──
+    function removeTag() {
+      document.getElementById('comment-tags-bar').classList.add('hidden');
+    }
+
+    function showNeedsChangesTag() {
+      document.getElementById('comment-tags-bar').classList.remove('hidden');
+    }
+
+    // ── Keyboard handlers ──
+    function handleCommentKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        postComment();
+      }
+    }
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 80) + 'px';
+    }
+
+    // ── Init ──
+    const params = new URLSearchParams(window.location.search);
+    const needsChanges = params.get('action') === 'request-changes';
+
+    // Component name from URL (default to demo data)
+    const componentName = params.get('component');
+    if (componentName) {
+      document.getElementById('sheet-title').textContent = componentName;
+    }
+
+    setFilter('all');
+
+    // If coming from Request Changes action, show tag
+    if (needsChanges) {
+      showNeedsChangesTag();
+    }
+
+    const HIGHLIGHT_MAP = {
+      'comments':   ['#hl-comment-input', '#comments-list'],
+      'addressed':  ['.bg-white.rounded-2xl.border.opacity-60'],
+      'structured': ['#context-card', '#comments-list .bg-white'],
+      'filter':     ['#comment-filter'],
+      'internal':   ['#comments-list'],
+      'status':     ['.rounded-full[style*="background"]']
+    };
+
+    function toggleHighlight(checkbox) {
+      const key = checkbox.dataset.hl;
+      if (!key || !HIGHLIGHT_MAP[key]) return;
+      const selectors = HIGHLIGHT_MAP[key];
+      selectors.forEach(sel => {
+        document.querySelectorAll(sel).forEach(el => {
+          if (checkbox.checked) {
+            if (!el.style.position || el.style.position === 'static') el.style.position = 'relative';
+            el.classList.add('hl-highlight');
+          } else {
+            const stillHighlighted = Array.from(document.querySelectorAll('.hl-check:checked')).some(cb => {
+              const cbKey = cb.dataset.hl;
+              if (!cbKey || cbKey === key) return false;
+              const cbSels = HIGHLIGHT_MAP[cbKey] || [];
+              return cbSels.some(s => { try { return el.matches(s); } catch(e) { return false; } });
+            });
+            if (!stillHighlighted) el.classList.remove('hl-highlight');
+          }
+        });
+      });
+    }
+
+    function updateCount() {
+      const total = document.querySelectorAll('.hl-check').length;
+      const checked = document.querySelectorAll('.hl-check:checked').length;
+      const counter = document.getElementById('hl-counter');
+      if (!counter) return;
+      counter.textContent = checked + ' / ' + total;
+      counter.style.color = checked === total ? '#12B28C' : '#9ca3af';
+    }
+
+    updateCount();
+  </script>
+
+</body>
+</html>

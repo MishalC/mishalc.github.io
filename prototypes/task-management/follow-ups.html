@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Follow-ups — Task management prototype</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../_shared/fonts.css">
+<link rel="stylesheet" href="tailwind.css">
+
+  <link rel="stylesheet" href="light-theme.css">
+
+  <script>window.CURRENT_PAGE = 'proto-follow-ups'; window.CURRENT_APP_TAB = 'tasks';</script>
+  <script src="task-data.js"></script>
+  <script src="follow-ups-data.js"></script>
+  <script src="topnav.js"></script>
+
+</head>
+
+<body class="bg-mbg text-mtext2 font-sans min-h-screen antialiased">
+<a href="/prototypes/" style="position:fixed;right:12px;bottom:12px;z-index:9999;padding:8px 12px;border-radius:999px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;font:500 12px/1.3 'Hanken Grotesk',system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #0006">Prototype by Mishal Chowdhury · names and data replaced · back to portfolio</a>
+
+  <div id="topnav-root"></div>
+
+  <main class="min-h-screen">
+    <div class="max-w-[1400px] mx-auto px-6 py-6">
+
+      <!-- Header -->
+      <div class="flex items-start justify-between gap-4 mb-4">
+        <div>
+          <h2 class="text-[22px] font-semibold text-mtext tracking-tight">Follow-ups</h2>
+          <p class="text-sm text-mtext3 mt-0.5" id="page-subtitle">Which members are waiting on you right now, and what to say. Projected live from tasks + conversations.</p>
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <span class="quiet-chip">Mon, May 18 · updates live</span>
+        </div>
+      </div>
+
+      <!-- Tasks-area tabs: Follow-ups is a tab within Tasks, the board stays -->
+      <div class="flex items-center gap-1 mb-5">
+        <a href="task-board.html" class="tab-pill" title="The full task board (all tasks, all types)">All tasks</a>
+        <span class="tab-pill active" title="Member follow-up triage: who is waiting on you">
+          Follow-ups <span class="tab-badge" id="ta-tab-count">0</span>
+        </span>
+        <div class="flex-1"></div>
+        <!-- Lens toggle: same projection, TA vs manager view (role-scoped in the real build) -->
+        <div class="inline-flex items-center gap-1 bg-mraised/70 rounded-full p-1">
+          <button id="view-ta" class="app-nav-pill active text-[12px] !py-1.5" data-view="ta" title="Your live follow-up queue">My follow-ups</button>
+          <button id="view-mgr" class="app-nav-pill text-[12px] !py-1.5" data-view="mgr" title="Cluster health: load, cracks, throughput">Manager</button>
+        </div>
+      </div>
+
+      <!-- ══════════════════ TA VIEW ══════════════════ -->
+      <div id="ta-view">
+
+        <!-- Owner filter + search + sort -->
+        <div class="flex flex-wrap items-center gap-1.5 mb-6">
+          <div class="flex flex-wrap items-center gap-1.5" id="owner-filter">
+            <button class="filter-chip owner-chip active" data-owner="all">Everyone <span class="filter-count" data-count="all">0</span></button>
+            <!-- per-owner chips injected -->
+          </div>
+          <div class="flex-1"></div>
+          <div class="relative">
+            <input id="fu-search" type="text" placeholder="Search member or trip…"
+              class="w-[210px] bg-mcard border border-mborder rounded-full pl-8 pr-3 py-1.5 text-xs text-mtext placeholder-mtext3 focus:outline-none focus:border-maccent transition-colors" />
+            <svg class="w-3.5 h-3.5 text-mtext3 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          </div>
+          <select id="fu-sort" class="bg-mcard border border-mborder rounded-full px-3 py-1.5 text-xs text-mtext2 focus:outline-none focus:border-maccent">
+            <option value="urgency" selected>Sort: Urgency</option>
+            <option value="member">Sort: Member A-Z</option>
+          </select>
+        </div>
+
+        <div class="flex gap-6 items-start">
+
+          <!-- Left: buckets -->
+          <div class="flex-1 min-w-0">
+
+            <!-- ACT NOW -->
+            <section class="mb-8">
+              <div class="flex items-center gap-2.5 mb-3">
+                <span class="w-2 h-2 rounded-full bg-mdanger"></span>
+                <h3 class="text-[13px] font-semibold text-mtext tracking-wide uppercase">Act now</h3>
+                <span class="text-xs text-mtext3" id="act-now-count"></span>
+                <div class="flex-1 h-px bg-mborder"></div>
+              </div>
+              <p class="text-xs text-mtext3 mb-3">Members mid-transaction, awaiting a reply, or holding an open promise. Reply before anything else.</p>
+              <div id="act-now-list" class="space-y-3"></div>
+            </section>
+
+            <!-- WAITING ON MEMBER -->
+            <section class="mb-8">
+              <div class="flex items-center gap-2.5 mb-3">
+                <span class="w-2 h-2 rounded-full bg-mamber"></span>
+                <h3 class="text-[13px] font-semibold text-mtext tracking-wide uppercase">Waiting on member</h3>
+                <span class="text-xs text-mtext3" id="waiting-count"></span>
+                <div class="flex-1 h-px bg-mborder"></div>
+              </div>
+              <p class="text-xs text-mtext3 mb-3">We sent, they are quiet. Each row shows its nudge window; verify before nudging.</p>
+              <div id="waiting-list" class="space-y-2"></div>
+            </section>
+
+            <div id="coverage-ta"></div>
+          </div>
+
+          <!-- Right: VERIFIED TODAY -->
+          <aside class="w-[320px] flex-shrink-0 hidden xl:block">
+            <div class="bg-mcard border border-mborder rounded-xl p-4 sticky top-4">
+              <div class="flex items-center gap-2 mb-1">
+                <span class="w-2 h-2 rounded-full bg-msuccess"></span>
+                <h3 class="text-[13px] font-semibold text-mtext tracking-wide uppercase">Verified today</h3>
+              </div>
+              <p class="text-xs text-mtext3 mb-3">Facts checked today. Reuse freely, sources attached. Captured when a task resolves.</p>
+              <div id="facts-list" class="space-y-3"></div>
+              <button id="capture-fact-btn" class="mt-3 w-full filter-chip justify-center">
+                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Capture a fact
+              </button>
+              <div id="capture-form" class="hidden mt-3 space-y-2">
+                <input id="capture-title" type="text" placeholder="Fact title"
+                  class="w-full bg-mcard border border-mborder rounded-lg px-2.5 py-1.5 text-xs text-mtext placeholder-mtext3 focus:outline-none focus:border-maccent" />
+                <textarea id="capture-body" rows="3" placeholder="What was verified, and where"
+                  class="w-full bg-mcard border border-mborder rounded-lg px-2.5 py-1.5 text-xs text-mtext placeholder-mtext3 focus:outline-none focus:border-maccent resize-none"></textarea>
+                <div class="flex gap-2">
+                  <button id="capture-save" class="px-3 py-1.5 rounded-lg bg-maccent text-white text-xs font-medium hover:bg-maccenth transition-colors">Save</button>
+                  <button id="capture-cancel" class="px-3 py-1.5 rounded-lg text-xs text-mtext3 hover:text-mtext transition-colors">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- ══════════════════ MANAGER VIEW ══════════════════ -->
+      <div id="mgr-view" class="hidden">
+
+        <!-- Summary strip -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6" id="mgr-stats"></div>
+
+        <div class="flex flex-col xl:flex-row gap-6 items-start mb-6">
+
+          <!-- Per-owner load table -->
+          <div class="flex-1 min-w-0 bg-mcard border border-mborder rounded-xl overflow-hidden">
+            <div class="px-4 py-3 border-b border-mborder flex items-center gap-2">
+              <h3 class="text-sm font-semibold text-mtext">Load by owner</h3>
+              <span class="text-[11px] text-mtext3">click a row to filter the queue below</span>
+            </div>
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-mborder bg-msurface/60 text-[11px] text-mtext3 uppercase tracking-wide">
+                  <th class="text-left px-4 py-2 font-medium">Owner</th>
+                  <th class="text-right px-3 py-2 font-medium">Act now</th>
+                  <th class="text-right px-3 py-2 font-medium">Waiting</th>
+                  <th class="text-right px-3 py-2 font-medium">Oldest</th>
+                  <th class="text-right px-4 py-2 font-medium">Handled 24h</th>
+                </tr>
+              </thead>
+              <tbody id="mgr-owner-rows"></tbody>
+            </table>
+          </div>
+
+          <!-- Falling through the cracks -->
+          <div class="w-full xl:w-[420px] flex-shrink-0 bg-mcard border border-mborder rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="w-2 h-2 rounded-full bg-mdanger"></span>
+              <h3 class="text-[13px] font-semibold text-mtext tracking-wide uppercase">Falling through the cracks</h3>
+            </div>
+            <p class="text-xs text-mtext3 mb-3">No owner, lapsed windows, unmet promises. Things no personal queue is showing anyone.</p>
+            <div id="cracks-list" class="space-y-2"></div>
+          </div>
+        </div>
+
+        <!-- Open queue (filterable by owner row) -->
+        <section class="mb-6">
+          <div class="flex items-center gap-2.5 mb-3">
+            <h3 class="text-[13px] font-semibold text-mtext tracking-wide uppercase">Open follow-ups</h3>
+            <span class="text-xs text-mtext3" id="mgr-queue-label">everyone</span>
+            <div class="flex-1 h-px bg-mborder"></div>
+          </div>
+          <div id="mgr-queue" class="space-y-2"></div>
+        </section>
+
+        <p class="text-[11px] text-mtext3 border-t border-mborder pt-3 mb-3">
+          Audience: ops leadership. Real-time over the same projection as the TA view; an optional daily snapshot notification can sit on top (flag-gated).
+        </p>
+        <div id="coverage-mgr"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Drawer backdrop -->
+  <div id="drawer-backdrop" class="modal-backdrop fixed inset-0 bg-black/30 z-40"></div>
+
+  <!-- Reply drawer (snippet + composer) -->
+  <div id="reply-drawer" class="drawer fixed right-0 top-0 h-full w-[480px] max-w-full bg-mbg border-l border-mborder z-50 flex flex-col shadow-2xl">
+    <div class="flex items-start justify-between gap-3 p-5 pb-4 bg-mcard border-b border-mborder">
+      <div class="min-w-0">
+        <p class="text-[11px] text-mtext3 mb-0.5" id="drawer-context"></p>
+        <h3 class="text-[15px] font-semibold text-mtext leading-snug" id="drawer-headline"></h3>
+      </div>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button id="drawer-done" class="text-xs text-msuccess hover:opacity-80 transition-opacity font-medium whitespace-nowrap">Mark handled</button>
+        <button id="drawer-close" class="p-1.5 text-mtext3 hover:text-mtext transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-5">
+      <!-- Context: chips + quoted trigger message + one meta line -->
+      <div class="flex flex-wrap items-center gap-1.5 mb-2.5" id="drawer-chips"></div>
+      <div id="drawer-snippet"></div>
+      <p class="text-xs text-mtext3 mt-2.5 leading-relaxed" id="drawer-detail"></p>
+      <div id="drawer-meta" class="flex flex-wrap items-center gap-x-1.5 gap-y-1 mt-2 text-[10px] text-mtext3"></div>
+
+      <!-- Composer -->
+      <div class="composer-card mt-4">
+        <div class="flex items-center justify-between px-3 pt-2.5 pb-1">
+          <span class="text-[10px] font-semibold uppercase tracking-wide text-mtext3">Suggested reply</span>
+          <span class="text-[10px] text-mtext3">sends as you · edit freely</span>
+        </div>
+        <textarea id="drawer-draft" rows="7" class="composer-input"></textarea>
+        <div id="drawer-verify" class="px-3 pb-2 space-y-1.5"></div>
+        <div class="composer-toolbar">
+          <button id="drawer-copy" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-maccent text-white hover:bg-maccenth text-xs font-medium transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+            Copy reply
+          </button>
+          <button id="drawer-open-thread" class="filter-chip !text-xs">Open conversation</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Conversation thread panel (chat module, read-only demo) -->
+  <div id="thread-panel" class="drawer fixed right-0 top-0 h-full w-[560px] max-w-full bg-mbg border-l border-mborder z-50 flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between gap-3 p-4 border-b border-mborder bg-mcard">
+      <div class="flex items-center gap-2 min-w-0">
+        <button id="thread-back" class="hidden filter-chip !py-1 !px-2.5" title="Back to the follow-up">
+          <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+          Follow-up
+        </button>
+        <div class="min-w-0">
+          <h3 class="text-sm font-semibold text-mtext truncate" id="thread-title"></h3>
+          <p class="text-[11px] text-mtext3 truncate" id="thread-subtitle"></p>
+        </div>
+      </div>
+      <button id="thread-close" class="p-1.5 text-mtext3 hover:text-mtext transition-colors flex-shrink-0">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div id="thread-messages" class="flex-1 overflow-y-auto p-5 space-y-3"></div>
+
+    <div class="border-t border-mborder bg-mcard p-4">
+      <textarea id="thread-composer" rows="3" placeholder="Write a reply…"
+        class="w-full bg-msurface border border-mborder rounded-lg px-3 py-2.5 text-sm text-mtext leading-relaxed focus:outline-none focus:border-maccent focus:bg-mcard resize-none"></textarea>
+      <div class="flex items-center gap-2 mt-2">
+        <span class="text-[11px] text-mtext3">Sends as you · personalize before sending</span>
+        <div class="flex-1"></div>
+        <button id="thread-send" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-maccent text-white hover:bg-maccenth text-sm font-medium transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast-root" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-[70] space-y-2"></div>
+
+  <script>
+    (function () {
+      let items = FOLLOWUPS.slice();
+      const facts = VERIFIED_FACTS.slice();
+      let ownerFilter = 'all';
+      let viewMode = 'ta';          // 'ta' | 'mgr'
+      let mgrOwnerFilter = 'all';
+      let openItemId = null;
+      let lastHandled = null;
+      let searchQ = '';
+      let sortBy = 'urgency';       // 'urgency' (fixture rank) | 'member'
+      let extraOpen = false;        // WAITING long tail expanded?
+
+      const REASON_META = {
+        'awaiting-reply':    { label: 'Awaiting reply',    tone: 'danger',  desc: 'Member is waiting on us with no reply yet. Reply-SLA clock is running.' },
+        'open-promise':      { label: 'Open promise',      tone: 'danger',  desc: 'We replied but committed to something that has not been delivered.' },
+        'waiting-on-member': { label: 'Waiting on member', tone: 'warning', desc: 'Ball is with the member; a nudge window governs when we follow up.' },
+      };
+
+      const $ = (sel) => document.querySelector(sel);
+
+      function esc(s) {
+        return String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+      }
+
+      function avatar(ownerId, size) {
+        const m = memberById(ownerId);
+        const dim = size === 'sm' ? 'w-5 h-5 text-[9px]' : 'w-6 h-6 text-[10px]';
+        return `<span class="avatar inline-flex items-center justify-center ${dim} rounded-full font-semibold flex-shrink-0" title="${esc(m.name)} · ${esc(m.role)}">${m.initials}</span>`;
+      }
+
+      // Rough age in hours, parsed from the fixture chips (prototype only).
+      function ageOf(item) {
+        const src = item.quiet_for || item.reason_label || '';
+        const n = parseInt((src.match(/(\d+)h/) || [])[1] || '0', 10);
+        return n;
+      }
+
+      function matchesSearch(text) {
+        return !searchQ || text.toLowerCase().includes(searchQ);
+      }
+      function visible() {
+        let vis = items.filter(i =>
+          (ownerFilter === 'all' || i.owner === ownerFilter) &&
+          matchesSearch(i.member + ' ' + i.context + ' ' + i.headline));
+        if (sortBy === 'member') vis = vis.slice().sort((a, b) => a.member.localeCompare(b.member));
+        return vis;
+      }
+      function visibleExtras() {
+        let vis = EXTRA_WAITING.filter(x =>
+          (ownerFilter === 'all' || x.owner === ownerFilter) &&
+          matchesSearch(x.member + ' ' + x.context));
+        if (sortBy === 'member') vis = vis.slice().sort((a, b) => a.member.localeCompare(b.member));
+        return vis;
+      }
+
+      function whyChip(item) {
+        return `<span class="why-chip ${item.why_now.tone}">${esc(item.why_now.label)}</span>`;
+      }
+      function reasonChip(item) {
+        const meta = REASON_META[item.reason];
+        if (!meta) return '';
+        return `<span class="why-chip ${meta.tone}">${esc(item.reason_label || meta.label)}</span>`;
+      }
+      // SLA stage chip (ticket 1712 three-stage model; only awaiting-reply rows carry an active anchor)
+      function slaChip(item) {
+        if (!item.sla_stage) return '';
+        return `<span class="sla-chip ${item.sla_stage}">${esc(item.sla_label || 'SLA ' + item.sla_stage)}</span>`;
+      }
+      // Row-level origin chip for non-conversation sources (meeting notes, call outcomes),
+      // so ingested items are recognizable without opening the drawer.
+      function originChip(item) {
+        return (ITEM_SOURCES[item.id] || [])
+          .filter(s => s === 'meeting' || s === 'phone')
+          .map(s => `<span class="src-chip live" title="This item came from the concierge team's ${SOURCE_LABELS[s].toLowerCase()} source">via ${SOURCE_LABELS[s]}</span>`)
+          .join('');
+      }
+
+      // ── TA view ──
+      function renderOwnerChips() {
+        const host = $('#owner-filter');
+        host.querySelectorAll('.owner-chip:not([data-owner="all"])').forEach(el => el.remove());
+        TEAM.filter(m => m.id !== 'ai').forEach(m => {
+          const count = items.filter(i => i.owner === m.id).length;
+          const btn = document.createElement('button');
+          btn.className = 'filter-chip owner-chip' + (ownerFilter === m.id ? ' active' : '');
+          btn.dataset.owner = m.id;
+          btn.innerHTML = `${avatar(m.id, 'sm')}<span class="ml-1.5">${esc(m.name)}</span><span class="filter-count">${count}</span>`;
+          host.appendChild(btn);
+        });
+        host.querySelector('[data-owner="all"]').classList.toggle('active', ownerFilter === 'all');
+        host.querySelector('[data-count="all"]').textContent = items.length;
+        $('#ta-tab-count').textContent = items.length;
+      }
+
+      function actNowCard(item) {
+        return `
+          <div class="fu-card bg-mcard border border-mborder border-l-2 border-l-mdanger rounded-xl p-4" data-id="${item.id}">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-[11px] text-mtext3 mb-1">${esc(item.context)}</p>
+                <h4 class="text-sm font-semibold text-mtext leading-snug">${esc(item.headline)}</h4>
+              </div>
+              <div class="flex items-center gap-1.5 flex-shrink-0">${avatar(item.owner)}</div>
+            </div>
+            <p class="text-xs text-mtext2 mt-2 leading-relaxed">${esc(item.detail)}</p>
+            <div class="flex flex-wrap items-center gap-2 mt-3">
+              ${slaChip(item)}
+              ${reasonChip(item)}
+              ${whyChip(item)}
+              ${originChip(item)}
+              <span class="quiet-chip">${esc(item.due)}</span>
+              <div class="flex-1"></div>
+              <button class="open-drawer inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-maccent text-white hover:bg-maccenth text-xs font-medium transition-colors" data-id="${item.id}">
+                Review reply
+              </button>
+              <button class="filter-chip open-thread" data-id="${item.id}">Open thread</button>
+            </div>
+          </div>`;
+      }
+
+      function waitingRow(item) {
+        return `
+          <div class="fu-card bg-mcard border border-mborder rounded-xl px-4 py-3 flex items-center gap-3" data-id="${item.id}">
+            ${avatar(item.owner)}
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-mtext3 truncate">${esc(item.context)}</span>
+              </div>
+              <p class="text-sm text-mtext font-medium truncate">${esc(item.headline)}</p>
+            </div>
+            <span class="quiet-chip flex-shrink-0">${esc(item.quiet_for)}</span>
+            ${whyChip(item)}
+            ${originChip(item)}
+            <button class="open-drawer filter-chip flex-shrink-0" data-id="${item.id}">Verify + nudge</button>
+          </div>`;
+      }
+
+      function factCard(f) {
+        return `
+          <div class="bg-msurface border border-mborder rounded-lg p-3" data-fact="${f.id}">
+            <div class="flex items-start justify-between gap-2">
+              <p class="text-xs font-semibold text-mtext leading-snug">${esc(f.title)}</p>
+              <button class="copy-fact p-1 text-mtext3 hover:text-mtext transition-colors flex-shrink-0" data-fact="${f.id}" title="Copy fact">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              </button>
+            </div>
+            <p class="text-[11px] text-mtext2 mt-1.5 leading-relaxed">${esc(f.body)}</p>
+            <div class="flex flex-wrap items-center gap-1.5 mt-2">
+              ${f.sources.map(s => `<a href="${s.url}" class="text-[10px] text-minfo hover:underline">${esc(s.label)}</a>`).join('')}
+              <span class="flex-1"></span>
+              <span class="text-[10px] text-mtext3">${avatar(f.verified_by, 'sm')} ${esc(f.verified_at)}</span>
+            </div>
+          </div>`;
+      }
+
+      function renderTA() {
+        const vis = visible();
+        const act = vis.filter(i => i.bucket === 'act-now');
+        const wait = vis.filter(i => i.bucket === 'waiting');
+
+        $('#act-now-list').innerHTML = act.length
+          ? act.map(actNowCard).join('')
+          : `<div class="border border-dashed border-mborder rounded-xl p-6 text-center text-xs text-mtext3">Nothing urgent. All promises kept.</div>`;
+        // Long tail: members quiet but still INSIDE their windows, collapsed by default.
+        const extras = visibleExtras();
+        const extraRows = extras.map(x => `
+          <div class="fu-card bg-mcard/60 border border-mborder border-dashed rounded-xl px-4 py-2.5 flex items-center gap-3">
+            ${avatar(x.owner, 'sm')}
+            <div class="min-w-0 flex-1">
+              <span class="text-[11px] text-mtext3 truncate block">${esc(x.context)}</span>
+              <p class="text-[13px] text-mtext2 truncate">${esc(x.member)} · quiet, inside the window · no action due yet</p>
+            </div>
+            <span class="quiet-chip flex-shrink-0">${esc(x.quiet)}</span>
+            <span class="why-chip info flex-shrink-0">${esc(x.window)}</span>
+          </div>`).join('');
+        const extraBlock = extras.length
+          ? (extraOpen
+              ? `<button id="extra-toggle" class="w-full text-[11px] text-mtext3 hover:text-mtext py-1.5 transition-colors">Collapse the ${extras.length} in-window members ▴</button>${extraRows}`
+              : `<button id="extra-toggle" class="w-full border border-dashed border-mborder rounded-xl px-4 py-2.5 text-xs text-mtext3 hover:text-mtext hover:border-mborderh text-left transition-colors">+ ${extras.length} more members quiet inside their nudge windows · nothing due yet · expand ▾</button>`)
+          : '';
+
+        $('#waiting-list').innerHTML = (wait.length
+          ? wait.map(waitingRow).join('')
+          : `<div class="border border-dashed border-mborder rounded-xl p-6 text-center text-xs text-mtext3">No quiet threads in a nudge window.</div>`) + extraBlock;
+
+        $('#act-now-count').textContent = act.length ? `${act.length}` : '';
+        $('#waiting-count').textContent = wait.length ? `${wait.length} due · ${extras.length} in window` : '';
+        $('#facts-list').innerHTML = facts.map(factCard).join('');
+        renderOwnerChips();
+      }
+
+      // ── Manager view ──
+      function renderMgr() {
+        const promisesOverdue = items.filter(i => i.reason === 'open-promise').length;
+        const awaitingReply = items.filter(i => i.reason === 'awaiting-reply').length;
+        const handled = Object.values(HANDLED_TODAY).reduce((a, b) => a + b, 0);
+        const oldest = items.reduce((best, i) => ageOf(i) > ageOf(best) ? i : best, items[0]);
+
+        $('#mgr-stats').innerHTML = `
+          <div class="stat-card"><div class="stat-value">${items.length}</div><div class="stat-label">Open follow-ups</div></div>
+          <div class="stat-card"><div class="stat-value amber">${oldest ? ageOf(oldest) + 'h' : '0h'}</div><div class="stat-label">Oldest open item${oldest ? ' (' + esc(oldest.member) + ')' : ''}</div></div>
+          <div class="stat-card"><div class="stat-value danger">${promisesOverdue}</div><div class="stat-label">Promises unmet</div></div>
+          <div class="stat-card"><div class="stat-value danger">${awaitingReply}</div><div class="stat-label">Awaiting our reply</div></div>
+          <div class="stat-card"><div class="stat-value success">${handled}</div><div class="stat-label">Handled since yesterday</div></div>
+        `;
+
+        $('#mgr-owner-rows').innerHTML = TEAM.filter(m => m.id !== 'ai').map(m => {
+          const mine = items.filter(i => i.owner === m.id);
+          const act = mine.filter(i => i.bucket === 'act-now').length;
+          const wait = mine.filter(i => i.bucket === 'waiting').length;
+          const oldestMine = mine.length ? Math.max(...mine.map(ageOf)) + 'h' : '·';
+          const sel = mgrOwnerFilter === m.id ? ' selected' : '';
+          return `
+            <tr class="owner-row border-b border-mborder/60 last:border-0${sel}" data-owner="${m.id}">
+              <td class="px-4 py-2.5"><span class="inline-flex items-center gap-2 text-sm text-mtext">${avatar(m.id, 'sm')} ${esc(m.name)}</span></td>
+              <td class="px-3 py-2.5 text-right text-sm ${act ? 'text-mdanger font-semibold' : 'text-mtext3'}">${act}</td>
+              <td class="px-3 py-2.5 text-right text-sm text-mtext2">${wait}</td>
+              <td class="px-3 py-2.5 text-right text-sm text-mtext2 font-mono">${oldestMine}</td>
+              <td class="px-4 py-2.5 text-right text-sm text-msuccess">${HANDLED_TODAY[m.id] || 0}</td>
+            </tr>`;
+        }).join('');
+
+        const sevDot = { danger: 'bg-mdanger', warning: 'bg-mamber', info: 'bg-minfo' };
+        $('#cracks-list').innerHTML = CRACKS.map(c => `
+          <div class="bg-msurface border border-mborder rounded-lg p-3 flex items-start gap-2.5" data-crack="${c.id}">
+            <span class="w-1.5 h-1.5 rounded-full ${sevDot[c.severity] || 'bg-mtext3'} mt-1.5 flex-shrink-0"></span>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs text-mtext2 leading-relaxed">${esc(c.text)}</p>
+              <button class="crack-action text-[11px] text-maccenth hover:underline mt-1.5" data-crack="${c.id}">${esc(c.action)}</button>
+            </div>
+            ${c.owner ? avatar(c.owner, 'sm') : ''}
+          </div>`).join('');
+
+        const queue = items.filter(i => mgrOwnerFilter === 'all' || i.owner === mgrOwnerFilter);
+        $('#mgr-queue-label').textContent = mgrOwnerFilter === 'all' ? 'everyone' : memberById(mgrOwnerFilter).name;
+        $('#mgr-queue').innerHTML = queue.length
+          ? queue.map(item => `
+              <div class="fu-card bg-mcard border border-mborder rounded-xl px-4 py-3 flex items-center gap-3" data-id="${item.id}">
+                ${avatar(item.owner)}
+                <div class="min-w-0 flex-1">
+                  <span class="text-[11px] text-mtext3 truncate block">${esc(item.context)}</span>
+                  <p class="text-sm text-mtext font-medium truncate">${esc(item.headline)}</p>
+                </div>
+                ${reasonChip(item)}
+                <button class="open-drawer filter-chip flex-shrink-0" data-id="${item.id}">Open</button>
+              </div>`).join('')
+          : `<div class="border border-dashed border-mborder rounded-xl p-6 text-center text-xs text-mtext3">Nothing open for this owner.</div>`;
+      }
+
+      function coverageCard() {
+        const sources = [
+          { label: 'Conversations', cls: 'live', why: 'live' },
+          { label: 'Task plane · 17 signal sources', cls: 'live', why: 'live' },
+          { label: 'SLA timers', cls: 'live', why: 'live' },
+          { label: 'Meeting notes', cls: 'later', why: 'ticket 2161 · transcript ingestion · M4' },
+          { label: 'Call outcomes', cls: 'later', why: 'ticket 2162 · quick-log on threads and tasks · M4' },
+        ];
+        return `
+          <div class="bg-mcard border border-mborder rounded-xl p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="text-[13px] font-semibold text-mtext tracking-wide uppercase">Source coverage</h3>
+              <span class="text-xs text-mtext3">one program, sequenced: projection first, ingestion follows</span>
+            </div>
+            <div class="flex flex-wrap gap-1.5">
+              ${sources.map(s => `<span class="src-chip ${s.cls}" title="${s.why}">${s.label}${s.cls === 'later' ? ' · M4' : ''}</span>`).join('')}
+            </div>
+            <p class="text-[11px] text-mtext3 mt-3 pt-3 border-t border-mborder">No Slack ingestion: member threads are native in Operations app after the Aug 4 cutover, and handoffs move in per ticket 1533. Whether cluster coordination chat also moves in is an open PO decision; until then it stays in Slack, unread. HEADS-UP announcements stay in Slack. Flag: <span class="font-mono text-maccenth">follow-ups-view</span>.</p>
+          </div>`;
+      }
+
+      function render() {
+        if (viewMode === 'ta') renderTA(); else renderMgr();
+        $('#ta-tab-count').textContent = items.length;
+        const cov = coverageCard();
+        $('#coverage-ta').innerHTML = cov;
+        $('#coverage-mgr').innerHTML = cov;
+      }
+
+      function setView(mode) {
+        viewMode = mode;
+        $('#ta-view').classList.toggle('hidden', mode !== 'ta');
+        $('#mgr-view').classList.toggle('hidden', mode !== 'mgr');
+        $('#view-ta').classList.toggle('active', mode === 'ta');
+        $('#view-mgr').classList.toggle('active', mode === 'mgr');
+        $('#page-subtitle').textContent = mode === 'ta'
+          ? 'Which members are waiting on you right now, and what to say. Projected live from tasks + conversations.'
+          : 'Is every member follow-up being worked, and what is falling through the cracks. Same projection, manager lens.';
+        render();
+      }
+
+      function toast(msg, undoFn) {
+        const el = document.createElement('div');
+        el.className = 'toast bg-[#222222] text-white rounded-lg px-4 py-2.5 text-sm shadow-2xl flex items-center gap-3';
+        el.innerHTML = `<span>${esc(msg)}</span>` + (undoFn ? `<button class="text-maccent text-xs font-medium hover:underline">Undo</button>` : '');
+        if (undoFn) el.querySelector('button').addEventListener('click', () => { undoFn(); el.remove(); });
+        $('#toast-root').appendChild(el);
+        setTimeout(() => el.remove(), 4000);
+      }
+
+      // ── Drawer (snippet + composer) ──
+      function openDrawer(id) {
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+        openItemId = id;
+        $('#drawer-context').textContent = item.context + ' · owner ' + memberById(item.owner).name;
+        $('#drawer-headline').textContent = item.headline;
+
+        // Chips: SLA stage + reason + why-now, one row
+        $('#drawer-chips').innerHTML = `${slaChip(item)}${reasonChip(item)}${whyChip(item)}`;
+
+        // Quoted snippet: the message this follow-up cites, from the thread
+        const trig = (THREADS[id] || []).find(m => m.trigger);
+        $('#drawer-snippet').innerHTML = trig
+          ? `<div class="snippet">
+               <p class="text-[10px] text-mtext3 mb-0.5">${esc(trig.name || (trig.sender === 'client' ? item.member : 'Us'))} · ${esc(trig.time)}</p>
+               <p class="text-xs text-mtext leading-relaxed">${esc(trig.text)}</p>
+               <button class="open-thread text-[10px] font-semibold text-maccenth hover:underline mt-1" data-id="${item.id}">View thread</button>
+             </div>`
+          : '';
+        $('#drawer-detail').textContent = item.detail;
+
+        // One meta line: provenance + fed-by chips + evidence links
+        $('#drawer-meta').innerHTML =
+          `<span>${esc(item.signal)} · ${esc(item.source_task)} · ${item.confidence}%</span>` +
+          (ITEM_SOURCES[item.id] || []).map(s => `<span class="src-chip live">${SOURCE_LABELS[s] || s}</span>`).join('') +
+          item.evidence.map(e => `<a href="${e.url}" class="text-minfo hover:underline">${esc(e.label)} ↗</a>`).join('');
+
+        $('#drawer-draft').value = item.draft;
+        $('#drawer-verify').innerHTML = item.verify.length
+          ? item.verify.map((v, i) => `
+              <label class="check-item">
+                <input type="checkbox" ${v.done ? 'checked' : ''} data-vi="${i}"
+                  class="mt-0.5 accent-[rgb(var(--app-accent))]" />
+                <span>${esc(v.text)}</span>
+              </label>`).join('')
+          : '';
+        $('#reply-drawer').classList.add('open');
+        $('#drawer-backdrop').classList.add('open');
+      }
+
+      function closeDrawer() {
+        openItemId = null;
+        $('#reply-drawer').classList.remove('open');
+        $('#drawer-backdrop').classList.remove('open');
+      }
+
+      // ── Conversation thread panel (chat module) ──
+      let threadItemId = null;
+      let threadFromDrawer = false;
+
+      function threadBubble(m, item) {
+        if (m.sender === 'system') {
+          return `<div class="flex justify-center py-1"><span class="sys-entry">${esc(m.text)} · ${esc(m.time)}</span></div>`;
+        }
+        const isClient = m.sender === 'client';
+        const meta = REASON_META[item.reason];
+        const tag = m.trigger
+          ? `<div class="trigger-tag"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>Why you are here · ${esc(item.reason_label || (meta ? meta.label : ''))}</div>`
+          : '';
+        return `
+          <div class="flex flex-col ${isClient ? 'items-start' : 'items-end'}">
+            <span class="text-[10px] text-mtext3 mb-1 px-1">${esc(m.name || '')} · ${esc(m.time)}</span>
+            <div class="bubble ${isClient ? 'client' : 'ops'}${m.trigger ? ' trigger' : ''}">${esc(m.text)}</div>
+            ${tag}
+          </div>`;
+      }
+
+      function openThread(id, fromDrawer) {
+        const item = items.find(i => i.id === id) || FOLLOWUPS.find(i => i.id === id);
+        if (!item) return;
+        threadItemId = id;
+        threadFromDrawer = !!fromDrawer;
+        $('#thread-back').classList.toggle('hidden', !fromDrawer);
+        $('#thread-title').textContent = item.member;
+        $('#thread-subtitle').textContent = item.context + ' · owner ' + memberById(item.owner).name;
+        $('#thread-messages').innerHTML = (THREADS[id] || []).map(m => threadBubble(m, item)).join('')
+          || '<p class="text-xs text-mtext3 text-center">No messages in this thread yet.</p>';
+        $('#thread-composer').value = fromDrawer ? $('#drawer-draft').value : '';
+        $('#reply-drawer').classList.remove('open');
+        $('#thread-panel').classList.add('open');
+        $('#drawer-backdrop').classList.add('open');
+        setTimeout(() => {
+          const t = document.querySelector('#thread-messages .bubble.trigger');
+          if (t) t.scrollIntoView({ block: 'center' });
+        }, 60);
+      }
+
+      function closeThread(keepBackdrop) {
+        threadFromDrawer = false;
+        $('#thread-panel').classList.remove('open');
+        if (!keepBackdrop) { $('#drawer-backdrop').classList.remove('open'); threadItemId = null; }
+      }
+
+      function threadIsOpen() { return $('#thread-panel').classList.contains('open'); }
+
+      // ── Events ──
+      document.addEventListener('click', (e) => {
+        const ownerBtn = e.target.closest('.owner-chip');
+        if (ownerBtn) { ownerFilter = ownerBtn.dataset.owner; render(); return; }
+
+        const mgrRow = e.target.closest('.owner-row');
+        if (mgrRow) {
+          mgrOwnerFilter = mgrOwnerFilter === mgrRow.dataset.owner ? 'all' : mgrRow.dataset.owner;
+          render();
+          return;
+        }
+
+        const openBtn = e.target.closest('.open-drawer');
+        if (openBtn) { openDrawer(openBtn.dataset.id); return; }
+
+        const threadBtn = e.target.closest('.open-thread');
+        if (threadBtn) { openThread(threadBtn.dataset.id, $('#reply-drawer').classList.contains('open')); return; }
+
+        const crackBtn = e.target.closest('.crack-action');
+        if (crackBtn) { toast('Would jump to the record to fix this (out of prototype scope)'); return; }
+
+        const copyFact = e.target.closest('.copy-fact');
+        if (copyFact) {
+          const f = facts.find(x => x.id === copyFact.dataset.fact);
+          navigator.clipboard && navigator.clipboard.writeText(f.title + ': ' + f.body).catch(() => {});
+          toast('Fact copied');
+          return;
+        }
+      });
+
+      $('#view-ta').addEventListener('click', () => setView('ta'));
+      $('#view-mgr').addEventListener('click', () => setView('mgr'));
+
+      $('#fu-search').addEventListener('input', (e) => { searchQ = e.target.value.trim().toLowerCase(); render(); });
+      $('#fu-sort').addEventListener('change', (e) => { sortBy = e.target.value; render(); });
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('#extra-toggle')) { extraOpen = !extraOpen; render(); }
+      });
+
+      $('#drawer-close').addEventListener('click', closeDrawer);
+      $('#drawer-backdrop').addEventListener('click', () => { if (threadIsOpen()) closeThread(); else closeDrawer(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (threadIsOpen()) closeThread(); else closeDrawer(); } });
+
+      $('#thread-close').addEventListener('click', () => closeThread());
+      $('#thread-back').addEventListener('click', () => {
+        const id = threadItemId;
+        closeThread(true);
+        if (id) openDrawer(id);
+      });
+      $('#thread-send').addEventListener('click', () =>
+        toast('Sending is out of prototype scope. In Operations app this sends in the member thread, as you.'));
+
+      $('#drawer-copy').addEventListener('click', () => {
+        navigator.clipboard && navigator.clipboard.writeText($('#drawer-draft').value).catch(() => {});
+        toast('Reply copied. Paste it in the conversation.');
+      });
+
+      $('#drawer-open-thread').addEventListener('click', () => {
+        if (openItemId) openThread(openItemId, true);
+      });
+
+      $('#drawer-done').addEventListener('click', () => {
+        if (!openItemId) return;
+        const idx = items.findIndex(i => i.id === openItemId);
+        if (idx === -1) return;
+        lastHandled = { item: items[idx], idx };
+        items.splice(idx, 1);
+        closeDrawer();
+        render();
+        toast('Marked handled', () => {
+          if (lastHandled) { items.splice(lastHandled.idx, 0, lastHandled.item); lastHandled = null; render(); }
+        });
+      });
+
+      // ── Capture fact ──
+      $('#capture-fact-btn').addEventListener('click', () => {
+        $('#capture-form').classList.toggle('hidden');
+        $('#capture-title').focus();
+      });
+      $('#capture-cancel').addEventListener('click', () => $('#capture-form').classList.add('hidden'));
+      $('#capture-save').addEventListener('click', () => {
+        const title = $('#capture-title').value.trim();
+        const body = $('#capture-body').value.trim();
+        if (!title || !body) { toast('Fact needs a title and a body'); return; }
+        facts.unshift({
+          id: 'vf-' + Math.random().toString(36).slice(2, 7),
+          title, body, sources: [],
+          verified_by: 'mc', verified_at: 'Just now', from_task: null,
+        });
+        $('#capture-title').value = ''; $('#capture-body').value = '';
+        $('#capture-form').classList.add('hidden');
+        render();
+        toast('Fact captured. Reusable for the whole team today.');
+      });
+
+      document.addEventListener('DOMContentLoaded', render);
+    })();
+  </script>
+</body>
+</html>
