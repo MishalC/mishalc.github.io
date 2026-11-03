@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pull request board, redrawn concept</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../_shared/fonts.css">
+<!--
+  Redrawn concept of Mishal Chowdhury's pull request board, written fresh for the portfolio on 3 Nov 2026.
+  Nothing here comes from the real board's code or the team's repositories. Pull requests,
+  engineers and repositories are placeholders, made by the seeded generator below. The idea it
+  shows: every open pull request on one board, by stage, with quick filters, a personal view and
+  a history of what merged.
+-->
+<style>
+  :root {
+    --ink: #0f172a;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --soft: #f8fafc;
+    --accent: #4f46e5;
+    --accent-soft: #eef2ff;
+    --blue: #1d4ed8;
+    --blue-soft: #eff6ff;
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --green: #047857;
+    --green-soft: #ecfdf5;
+    --indigo: #4338ca;
+    --indigo-soft: #eef2ff;
+    --red: #b91c1c;
+    --red-soft: #fef2f2;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font: 14px/1.45 'Hanken Grotesk', system-ui, sans-serif;
+    color: var(--ink);
+    background: #f1f5f9;
+    min-height: 100vh;
+  }
+  button, input, select { font: inherit; color: inherit; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  .note {
+    margin: 0;
+    padding: 10px 16px;
+    background: var(--ink);
+    color: #e2e8f0;
+    font-size: 13px;
+  }
+  .note a { color: #c7d2fe; }
+
+  .app { padding: 18px 24px 48px; }
+
+  .top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand { display: flex; gap: 12px; align-items: center; }
+  .logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background:
+      linear-gradient(var(--accent), var(--accent)) 9px 8px / 4px 18px no-repeat,
+      linear-gradient(var(--accent), var(--accent)) 21px 8px / 4px 18px no-repeat,
+      var(--accent-soft);
+    border: 1px solid #c7d2fe;
+  }
+  .brand h1 { margin: 0; font-size: 20px; line-height: 1.2; }
+  .meta { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .btn {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    padding: 7px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn:hover { border-color: #c7d2fe; }
+  .btn svg { width: 15px; height: 15px; }
+  .btn.spin svg { animation: spin 0.7s linear; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Views */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-top: 16px;
+    border-bottom: 1px solid var(--line);
+    overflow-x: auto;
+  }
+  .tabs button {
+    padding: 9px 14px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    color: var(--muted);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .tabs .count {
+    margin-left: 4px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  /* Filters */
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    align-items: center;
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+  }
+  .search input {
+    width: 260px;
+    max-width: 100%;
+    padding: 7px 11px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--soft);
+  }
+  .sel { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); font-size: 13px; }
+  .sel select {
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+  }
+  .labels { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+  .labels button {
+    padding: 4px 11px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: #fff;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .labels button[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .check { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; cursor: pointer; }
+  .check input { accent-color: var(--accent); }
+  .link {
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .link[disabled] { color: var(--muted); text-decoration: none; cursor: default; }
+
+  /* Stage strip: counts after the other filters, and a stage filter */
+  .stages { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .stages[hidden] { display: none; }
+  .stage-btn {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .stage-btn b { font-variant-numeric: tabular-nums; }
+  .stage-btn[aria-pressed="true"] { border-color: currentColor; box-shadow: 0 0 0 2px var(--accent-soft); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .showing { margin: 12px 2px 10px; color: var(--muted); font-size: 13px; }
+
+  .tone-blue { color: var(--blue); }
+  .tone-amber { color: var(--amber); }
+  .tone-green { color: var(--green); }
+  .tone-indigo { color: var(--indigo); }
+  .tone-red { color: var(--red); }
+  .stage-btn span:last-child, .stage-btn b { color: var(--ink); }
+
+  .chip {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .chip.tone-blue { background: var(--blue-soft); }
+  .chip.tone-amber { background: var(--amber-soft); }
+  .chip.tone-green { background: var(--green-soft); }
+  .chip.tone-indigo { background: var(--indigo-soft); }
+  .chip.tone-red { background: var(--red-soft); }
+  .tag {
+    display: inline-block;
+    padding: 0 7px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+  .avatar {
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #e0e7ff;
+    color: var(--indigo);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .avatar.me { background: var(--accent); color: #fff; }
+
+  /* Board */
+  .board {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(236px, 1fr);
+    gap: 12px;
+    align-items: start;
+    overflow-x: auto;
+    padding-bottom: 8px;
+  }
+  .col {
+    padding: 10px;
+    border-radius: 12px;
+    background: #e9eef5;
+  }
+  .col-head {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 2px 4px 10px;
+    font-weight: 700;
+  }
+  .col-head .n { margin-left: auto; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .empty { padding: 14px 8px; color: var(--muted); font-size: 13px; text-align: center; }
+
+  .card {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 10px 11px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+  }
+  .card:hover { border-color: #c7d2fe; }
+  .card:focus-visible, .row-btn:focus-visible, .tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card-top { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 12px; }
+  .card-top .num { font-variant-numeric: tabular-nums; }
+  .card .ttl { display: block; margin-top: 3px; font-weight: 600; line-height: 1.3; }
+  .card .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .card-foot { display: flex; gap: 7px; align-items: center; margin-top: 9px; color: var(--muted); font-size: 12px; }
+  .card-foot .age { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .blocker { margin: 8px 0 0; padding: 5px 8px; border-radius: 7px; background: var(--red-soft); color: var(--red); font-size: 12px; font-weight: 600; }
+  .checks { display: inline-flex; gap: 3px; }
+  .checks i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .checks i.fail { background: var(--red); }
+  .checks i.running { background: #f59e0b; }
+
+  /* List */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; white-space: nowrap; }
+  td.title-cell { white-space: normal; min-width: 240px; }
+  th { background: var(--soft); color: var(--muted); font-size: 12px; font-weight: 600; letter-spacing: 0.02em; }
+  th button { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+  th button::after { content: ' ↕'; opacity: 0.4; }
+  th[aria-sort="ascending"] button::after { content: ' ↑'; opacity: 1; }
+  th[aria-sort="descending"] button::after { content: ' ↓'; opacity: 1; }
+  tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: var(--soft); }
+  .row-btn { padding: 0; border: 0; background: none; font-weight: 600; text-align: left; cursor: pointer; }
+  .row-btn:hover { color: var(--accent); }
+  .num-cell { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .who { display: inline-flex; gap: 6px; align-items: center; }
+
+  /* My work */
+  .mine { display: grid; gap: 16px; }
+  .panel { padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+  .panel h2 { margin: 0 0 4px; font-size: 15px; }
+  .panel > p { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+  .work {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    padding: 10px 4px;
+    border: 0;
+    border-top: 1px solid var(--line);
+    background: none;
+    text-align: left;
+    cursor: pointer;
+  }
+  .work:hover .ttl { color: var(--accent); }
+  .work .num { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .work .ttl { font-weight: 600; }
+  .work .sub { display: block; color: var(--muted); font-size: 12px; font-weight: 400; }
+  .next { font-size: 13px; font-weight: 600; text-align: right; }
+
+  /* History */
+  .history { display: grid; gap: 16px; }
+  .bars { display: flex; gap: 6px; align-items: flex-end; height: 120px; padding: 6px 2px 0; }
+  .bar { flex: 1; min-width: 10px; border-radius: 5px 5px 2px 2px; background: #c7d2fe; position: relative; }
+  .bar.today { background: var(--accent); }
+  .bar span { position: absolute; top: -18px; left: 0; right: 0; text-align: center; font-size: 11px; color: var(--muted); }
+  .axis { display: flex; justify-content: space-between; margin-top: 6px; color: var(--muted); font-size: 12px; }
+  .day-head { margin: 14px 0 2px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  /* Details drawer */
+  .scrim { position: fixed; inset: 0; z-index: 20; background: rgb(15 23 42 / 0.25); }
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 21;
+    width: min(420px, 100vw);
+    overflow-y: auto;
+    padding: 18px 20px 28px;
+    border-left: 1px solid var(--line);
+    background: #fff;
+    box-shadow: -12px 0 32px rgb(15 23 42 / 0.12);
+  }
+  .scrim[hidden], .drawer[hidden] { display: none; }
+  .drawer-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+  .drawer-head p { margin: 0; color: var(--muted); font-size: 13px; }
+  .drawer h2 { margin: 4px 0 0; font-size: 18px; line-height: 1.3; }
+  .close {
+    flex: none;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+  }
+  .drawer h3 { margin: 20px 0 8px; color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+  .facts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .lines { margin: 0; padding: 0; list-style: none; }
+  .lines li { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); }
+  .lines li:first-child { border-top: 0; }
+  .timeline { margin: 0; padding: 0 0 0 16px; border-left: 2px solid var(--line); list-style: none; }
+  .timeline li { position: relative; padding: 0 0 12px 4px; }
+  .timeline li::before { content: ''; position: absolute; left: -22px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: #fff; border: 2px solid #c7d2fe; }
+  .timeline small { display: block; color: var(--muted); }
+  .open-link { margin-top: 22px; width: 100%; justify-content: center; color: var(--muted); cursor: not-allowed; }
+
+  .pill {
+    position: fixed;
+    right: 12px;
+    bottom: 12px;
+    z-index: 10;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #e2e8f0;
+    font: 500 12px/1.3 'Hanken Grotesk', system-ui, sans-serif;
+    text-decoration: none;
+    box-shadow: 0 2px 10px #0006;
+  }
+
+  @media (max-width: 700px) {
+    .app { padding: 14px 14px 64px; }
+    .search, .search input { width: 100%; }
+    .board { grid-auto-columns: 82%; }
+    .work { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+    .next { text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn.spin svg { animation: none; }
+  }
+</style>
+</head>
+<body>
+<a class="pill" href="/automation/#pr-board">Redrawn concept by Mishal Chowdhury · not the real board · back to portfolio</a>
+
+<p class="note">
+  Redrawn concept of the pull request board I built, written fresh with placeholder data. The real board
+  read every open pull request from GitHub and refreshed every 30 minutes.
+  <a href="/automation/#pr-board">Why I built it</a>
+</p>
+
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <span class="logo" aria-hidden="true"></span>
+      <div>
+        <h1>Pull request board</h1>
+        <p class="meta" id="meta"></p>
+      </div>
+    </div>
+    <button type="button" class="btn" id="refresh">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v4h-4" /></svg>
+      Refresh
+    </button>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Views">
+    <button type="button" role="tab" id="tab-board" data-view="board" aria-selected="true" aria-controls="view">Board</button>
+    <button type="button" role="tab" id="tab-list" data-view="list" aria-selected="false" aria-controls="view" tabindex="-1">List</button>
+    <button type="button" role="tab" id="tab-mine" data-view="mine" aria-selected="false" aria-controls="view" tabindex="-1">My work <span class="count" id="mineCount"></span></button>
+    <button type="button" role="tab" id="tab-history" data-view="history" aria-selected="false" aria-controls="view" tabindex="-1">History</button>
+  </div>
+
+  <form class="filters" id="filters" role="search" aria-label="Filter pull requests">
+    <label class="search"><span class="sr">Search</span><input id="q" type="search" placeholder="Search by title, number or author" autocomplete="off"></label>
+    <label class="sel">Repository <select id="repo"></select></label>
+    <label class="sel">Author <select id="author"></select></label>
+    <div class="labels" id="labels" role="group" aria-label="Labels"></div>
+    <label class="check"><input type="checkbox" id="hideDrafts"> Hide drafts</label>
+    <label class="check"><input type="checkbox" id="stale"> Open over 3 days</label>
+    <button type="button" class="link" id="clear">Clear filters</button>
+  </form>
+
+  <div class="stages" id="stages" role="group" aria-label="Filter by stage"></div>
+  <p class="showing" id="showing" aria-live="polite"></p>
+  <main id="view" role="tabpanel" aria-labelledby="tab-board"></main>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" aria-labelledby="drawerTitle" hidden></aside>
+
+<script>
+  // Placeholders only. A seeded generator makes the same board on every load.
+  const STAGES = [
+    { id: 'review', name: 'Review', tone: 'blue' },
+    { id: 'ci', name: 'CI checks', tone: 'amber' },
+    { id: 'ready', name: 'Ready to merge', tone: 'green' },
+    { id: 'queue', name: 'Merge queue', tone: 'indigo' },
+    { id: 'blocked', name: 'Blocked', tone: 'red' },
+  ];
+  const STAGE = Object.fromEntries(STAGES.map((s) => [s.id, s]));
+  const SUB = {
+    waiting: 'Waiting for review', changes: 'Changes requested', draft: 'Draft',
+    failing: 'Checks failing', running: 'Checks running',
+    approved: 'Approved', queued: 'In queue', blocked: 'Blocked',
+  };
+  const REPOS = { web: 'Web app', api: 'API', mobile: 'Mobile app' };
+  const ENGINEERS = ['Engineer A', 'Engineer B', 'Engineer C', 'Engineer D', 'Engineer E', 'Engineer F', 'Engineer G', 'Engineer H'];
+  const ME = 'Engineer A';
+  const LABELS = ['Bug', 'Feature', 'Chore', 'Hotfix'];
+  const CHECKS = ['Lint', 'Unit tests', 'Build', 'End-to-end tests'];
+  const BLOCKERS = ['Merge conflict with main', 'Needs product sign-off', 'Waiting for a release window'];
+  const TITLES = [
+    'Fix date picker timezone offset', 'Add pagination to search results', 'Upgrade the test runner',
+    'Cache profile lookups', 'Fix flaky login test', 'Add an empty state to the reports page',
+    'Split the settings page into tabs', 'Retry failed webhook deliveries', 'Fix currency rounding on totals',
+    'Add an audit log for role changes', 'Lazy-load images in the gallery', 'Remove unused feature flags',
+    'Fix crash when a list is empty', 'Add CSV export to the orders table', 'Move email templates to one folder',
+    'Show a toast when saving fails', 'Fix dark mode contrast on buttons', 'Add rate limiting to the public API',
+    'Rename the notifications service', 'Fix push notification deep links', 'Add offline banner to the app',
+    'Speed up the dashboard query', 'Fix the password reset redirect', 'Add keyboard shortcuts to the editor',
+    'Bump dependencies for security fixes', 'Fix duplicate rows after import', 'Add health check endpoint',
+    'Tidy logging in background jobs', 'Fix scroll jump on the inbox', 'Add a retry button to failed uploads',
+    'Store user preferences on the server', 'Fix wrong count on the badge', 'Add loading skeletons to cards',
+    'Fix time format for 12-hour locales', 'Add filters to the activity feed', 'Fix overlapping labels on charts',
+    'Add a confirm step before deleting', 'Fix app crash on rotate', 'Add tracing to slow endpoints',
+    'Fix stale cache after logout', 'Add pinch zoom to images', 'Reduce bundle size of the admin page',
+    'Fix upload progress stuck at 99%', 'Add pull-to-refresh on lists', 'Fix sorting by date in tables',
+    'Add a changelog page', 'Fix the broken link in the footer', 'Add search to the help centre',
+    'Add sorting to the users table', 'Fix tooltip cut off on small screens', 'Add retry to the sync job',
+    'Fix focus ring missing on links', 'Add a timeout to slow API calls', 'Fix wrong total after a discount',
+    'Add an archive option to old records', 'Fix image upload on older phones', 'Add server-side validation to forms',
+    'Fix the back button in settings', 'Add metrics to the queue worker', 'Fix stale data after signing in again',
+    'Add bulk select to lists', 'Fix memory leak in the chart view', 'Add a status page link to errors',
+    'Fix the share sheet on tablets',
+  ];
+  const MERGED_TITLES = [
+    'Fix typo on the sign-up page', 'Add alt text to product images', 'Upgrade the build tool',
+    'Fix double submit on forms', 'Add a skeleton to the profile page', 'Fix paging on the audit log',
+    'Remove the old onboarding screens', 'Add a dark mode toggle', 'Fix wrong week start in calendars',
+    'Add a request ID to logs', 'Fix scroll restore on back', 'Add unit tests for the price helper',
+    'Fix the menu closing on tap', 'Add an export button to reports', 'Fix overflow on long names',
+    'Add caching headers to static files', 'Fix login loop on expired sessions', 'Add a banner for maintenance',
+    'Fix chart colours in print', 'Add search highlighting', 'Fix notification badge reset',
+    'Add a copy link button', 'Fix slow first load on mobile', 'Add input masks to phone fields',
+    'Fix empty email in invites', 'Add a delete confirmation', 'Fix keyboard trap in dialogs',
+    'Add a version number to the footer', 'Fix date sorting in exports', 'Add a loading state to buttons',
+  ];
+
+  let seed = 20261103;
+  const rnd = () => (seed = (seed * 48271) % 2147483647) / 2147483647;
+  const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
+  const weighted = (pairs) => {
+    let r = rnd() * pairs.reduce((s, [, w]) => s + w, 0);
+    for (const [v, w] of pairs) if ((r -= w) < 0) return v;
+    return pairs[0][0];
+  };
+  const others = (name) => ENGINEERS.filter((e) => e !== name);
+
+  function makePr(i, title) {
+    // The first few belong to the viewer, so My work has something in every state.
+    const mine = ['review', 'ci', 'ready', 'review', 'blocked'];
+    const author = i < mine.length ? ME : pick(others(ME));
+    const stage = i < mine.length ? mine[i] : weighted([['review', 22], ['ci', 15], ['ready', 9], ['queue', 7], ['blocked', 6]]);
+    const labels = [pick(LABELS)];
+    if (rnd() < 0.25) labels.push(pick(LABELS.filter((l) => l !== labels[0])));
+    const age = Math.floor(rnd() ** 1.6 * 15);
+    const pr = {
+      title, author, stage, labels, age, draft: false,
+      repo: pick(Object.keys(REPOS)),
+      updated: Math.max(1, Math.min(age * 24 + 2, Math.floor(rnd() * 30) + 1)),
+      checks: CHECKS.map((name) => ({ name, state: 'pass' })),
+      reviewers: [],
+    };
+    const pool = others(author).filter((e) => e !== ME);
+    const reviewer = (state) => ({ name: pick(pool), state });
+    if (stage === 'review') {
+      pr.sub = i === 0 ? 'changes' : i === 3 ? 'waiting' : weighted([['waiting', 55], ['changes', 30], ['draft', 15]]);
+      pr.draft = pr.sub === 'draft';
+      if (pr.sub === 'changes') pr.reviewers = [reviewer('changes')];
+      else if (!pr.draft) pr.reviewers = [reviewer('pending')];
+      // Some ask the viewer for a review.
+      if (!pr.draft && author !== ME && rnd() < 0.35) pr.reviewers.push({ name: ME, state: 'pending' });
+    } else if (stage === 'ci') {
+      pr.sub = i === 1 || rnd() < 0.55 ? 'failing' : 'running';
+      if (pr.sub === 'failing') pr.checks[1 + Math.floor(rnd() * 3)].state = 'fail';
+      else pr.checks.forEach((c, k) => { if (k >= 2) c.state = 'running'; });
+      pr.reviewers = [reviewer(rnd() < 0.5 ? 'approved' : 'pending')];
+    } else if (stage === 'ready') {
+      pr.sub = 'approved';
+      pr.reviewers = [reviewer('approved')];
+      if (rnd() < 0.4) pr.reviewers.push(reviewer('approved'));
+    } else if (stage === 'queue') {
+      pr.sub = 'queued';
+      pr.reviewers = [reviewer('approved')];
+    } else {
+      pr.sub = 'blocked';
+      pr.reviewers = [reviewer(rnd() < 0.5 ? 'approved' : 'pending')];
+      pr.blocker = rnd() < 0.4 ? 'waits' : pick(BLOCKERS);
+    }
+    return pr;
+  }
+
+  const OPEN = TITLES.map((t, i) => makePr(i, t));
+  // Older pull requests have lower numbers.
+  [...OPEN].sort((a, b) => b.age - a.age || a.updated - b.updated).forEach((pr, rank) => { pr.num = 2101 + rank * 3 + Math.floor(rnd() * 3); });
+  OPEN.filter((pr) => pr.blocker === 'waits').forEach((pr) => {
+    const other = pick(OPEN.filter((o) => o !== pr && o.repo === pr.repo && o.stage !== 'blocked')) || OPEN[0];
+    pr.blocker = `Waits on #${other.num}`;
+  });
+  let position = { web: 0, api: 0, mobile: 0 };
+  OPEN.filter((pr) => pr.stage === 'queue').sort((a, b) => a.num - b.num).forEach((pr) => { pr.position = ++position[pr.repo]; });
+
+  // Merged in the last 14 days, for History. Weekends are quieter.
+  const MERGED = [];
+  for (let d = 13; d >= 0; d--) {
+    const weekend = d % 7 === 5 || d % 7 === 6;
+    const n = weekend ? Math.floor(rnd() * 2) : 2 + Math.floor(rnd() * 5);
+    for (let k = 0; k < n; k++) {
+      MERGED.push({ daysAgo: d, title: MERGED_TITLES[MERGED.length % MERGED_TITLES.length], repo: pick(Object.keys(REPOS)), author: pick(ENGINEERS), labels: [pick(LABELS)], openFor: 1 + Math.floor(rnd() ** 1.5 * 120) });
+    }
+  }
+  [...MERGED].reverse().forEach((m, i) => { m.num = 2098 - i * 2; });
+
+  // State
+  const state = { view: 'board', q: '', repo: '', author: '', labels: new Set(), hideDrafts: false, stale: false, stages: new Set(), sort: { key: 'age', dir: -1 }, updated: '12 minutes ago' };
+
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
+  const initial = (name) => name.split(' ').pop();
+  const ageText = (d) => (d === 0 ? 'today' : `${d}d`);
+  const hoursText = (h) => (h < 24 ? `${h}h` : `${Math.round(h / 24)}d`);
+
+  function avatar(name) {
+    const a = el('span', `avatar${name === ME ? ' me' : ''}`, initial(name));
+    a.setAttribute('aria-hidden', 'true');
+    return a;
+  }
+  function stageChip(pr) { return el('span', `chip tone-${STAGE[pr.stage].tone}`, pr.stage === 'queue' ? `In queue, ${ordinal(pr.position)}` : SUB[pr.sub]); }
+  function ordinal(n) { return n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'); }
+  function checkDots(pr) {
+    const wrap = el('span', 'checks');
+    const passed = pr.checks.filter((c) => c.state === 'pass').length;
+    wrap.setAttribute('role', 'img');
+    wrap.setAttribute('aria-label', `${passed} of ${pr.checks.length} checks passed`);
+    pr.checks.forEach((c) => wrap.append(el('i', c.state === 'pass' ? '' : c.state)));
+    return wrap;
+  }
+
+  function matches(pr, { stage = true } = {}) {
+    const q = state.q.trim().toLowerCase();
+    if (q && !`${pr.title} #${pr.num} ${pr.author}`.toLowerCase().includes(q.replace(/^#/, '#'))) return false;
+    if (state.repo && pr.repo !== state.repo) return false;
+    if (state.author && pr.author !== state.author) return false;
+    if (state.labels.size && !pr.labels.some((l) => state.labels.has(l))) return false;
+    if (pr.stage) {
+      if (state.hideDrafts && pr.draft) return false;
+      if (state.stale && pr.age <= 3) return false;
+      if (stage && state.stages.size && !state.stages.has(pr.stage)) return false;
+    }
+    return true;
+  }
+  const filtersOn = () => state.q || state.repo || state.author || state.labels.size || state.hideDrafts || state.stale || state.stages.size;
+
+  // Filter controls
+  function setupFilters() {
+    $('repo').append(new Option('All', ''), ...Object.entries(REPOS).map(([id, name]) => new Option(name, id)));
+    $('author').append(new Option('All', ''), ...ENGINEERS.map((e) => new Option(e === ME ? `${e} (you)` : e, e)));
+    $('labels').replaceChildren(...LABELS.map((l) => {
+      const b = el('button', '', l);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', () => { state.labels.has(l) ? state.labels.delete(l) : state.labels.add(l); render(); });
+      return b;
+    }));
+    $('q').addEventListener('input', (e) => { state.q = e.target.value; render(); });
+    $('repo').addEventListener('change', (e) => { state.repo = e.target.value; render(); });
+    $('author').addEventListener('change', (e) => { state.author = e.target.value; render(); });
+    $('hideDrafts').addEventListener('change', (e) => { state.hideDrafts = e.target.checked; render(); });
+    $('stale').addEventListener('change', (e) => { state.stale = e.target.checked; render(); });
+    $('filters').addEventListener('submit', (e) => e.preventDefault());
+    $('clear').addEventListener('click', () => {
+      Object.assign(state, { q: '', repo: '', author: '', hideDrafts: false, stale: false });
+      state.labels.clear();
+      state.stages.clear();
+      $('q').value = '';
+      $('repo').value = '';
+      $('author').value = '';
+      $('hideDrafts').checked = false;
+      $('stale').checked = false;
+      render();
+    });
+  }
+
+  function renderStages() {
+    const history = state.view === 'history';
+    $('stages').hidden = history;
+    if (history) return;
+    $('stages').replaceChildren(...STAGES.map((s) => {
+      const n = OPEN.filter((pr) => pr.stage === s.id && matches(pr, { stage: false })).length;
+      const b = el('button', `stage-btn tone-${s.tone}`);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(state.stages.has(s.id)));
+      b.append(el('span', 'dot'), el('span', '', s.name), el('b', '', String(n)));
+      b.addEventListener('click', () => { state.stages.has(s.id) ? state.stages.delete(s.id) : state.stages.add(s.id); render(); });
+      return b;
+    }));
+  }
+
+  function card(pr) {
+    const b = el('button', 'card');
+    b.type = 'button';
+    const top = el('div', 'card-top');
+    top.append(el('span', 'num', `#${pr.num}`), el('span', '', REPOS[pr.repo]));
+    const tags = el('div', 'tags');
+    tags.append(stageChip(pr), ...pr.labels.map((l) => el('span', 'tag', l)));
+    const foot = el('div', 'card-foot');
+    foot.append(avatar(pr.author), el('span', '', pr.author === ME ? 'You' : pr.author), checkDots(pr), el('span', 'age', `open ${ageText(pr.age)}`));
+    b.append(top, el('strong', 'ttl', pr.title), tags, foot);
+    if (pr.blocker) b.append(el('p', 'blocker', pr.blocker));
+    b.addEventListener('click', () => openDrawer(pr, b));
+    return b;
+  }
+
+  function renderBoard(list) {
+    const view = $('view');
+    view.className = 'board';
+    const cols = STAGES.filter((s) => !state.stages.size || state.stages.has(s.id));
+    view.replaceChildren(...cols.map((s) => {
+      const items = list.filter((pr) => pr.stage === s.id).sort((a, b) => b.age - a.age);
+      const col = el('section', 'col');
+      col.setAttribute('aria-label', `${s.name}, ${items.length}`);
+      const head = el('div', `col-head tone-${s.tone}`);
+      const name = el('span', '', s.name);
+      name.style.color = 'var(--ink)';
+      head.append(el('span', 'dot'), name, el('span', 'n', String(items.length)));
+      col.append(head, ...(items.length ? items.map(card) : [el('p', 'empty', 'Nothing here with these filters')]));
+      return col;
+    }));
+  }
+
+  const SORTS = {
+    num: (pr) => pr.num, title: (pr) => pr.title, repo: (pr) => REPOS[pr.repo], author: (pr) => pr.author,
+    stage: (pr) => STAGES.findIndex((s) => s.id === pr.stage), age: (pr) => pr.age,
+  };
+  function renderList(list) {
+    const view = $('view');
+    view.className = '';
+    const { key, dir } = state.sort;
+    const rows = [...list].sort((a, b) => (SORTS[key](a) > SORTS[key](b) ? 1 : SORTS[key](a) < SORTS[key](b) ? -1 : 0) * dir);
+    const wrap = el('div', 'table-wrap');
+    const table = el('table');
+    const head = el('tr');
+    [['num', 'Number'], ['title', 'Title'], ['repo', 'Repository'], ['author', 'Author'], ['stage', 'Stage'], [null, 'Checks'], [null, 'Reviews'], ['age', 'Open for']].forEach(([k, label]) => {
+      const th = el('th');
+      th.scope = 'col';
+      if (k) {
+        const b = el('button', '', label);
+        b.type = 'button';
+        b.addEventListener('click', () => { state.sort = { key: k, dir: state.sort.key === k ? -state.sort.dir : k === 'age' ? -1 : 1 }; render(); });
+        th.append(b);
+        th.setAttribute('aria-sort', key === k ? (dir > 0 ? 'ascending' : 'descending') : 'none');
+      } else th.textContent = label;
+      head.append(th);
+    });
+    const thead = el('thead');
+    thead.append(head);
+    const body = el('tbody');
+    body.append(...rows.map((pr) => {
+      const tr = el('tr');
+      const title = el('td', 'title-cell');
+      const btn = el('button', 'row-btn', pr.title);
+      btn.type = 'button';
+      btn.addEventListener('click', () => openDrawer(pr, btn));
+      title.append(btn, ' ', ...pr.labels.map((l) => el('span', 'tag', l)));
+      const who = el('span', 'who');
+      who.append(avatar(pr.author), pr.author === ME ? 'You' : pr.author);
+      const approved = pr.reviewers.filter((r) => r.state === 'approved').length;
+      const cells = [el('td', 'num-cell', `#${pr.num}`), title, el('td', '', REPOS[pr.repo]), el('td'), el('td'), el('td'), el('td', '', pr.draft ? 'Draft' : `${approved} of ${Math.max(1, pr.reviewers.length)} approved`), el('td', 'num-cell', ageText(pr.age))];
+      cells[3].append(who);
+      cells[4].append(stageChip(pr));
+      cells[5].append(checkDots(pr));
+      tr.append(...cells);
+      return tr;
+    }));
+    table.append(thead, body);
+    wrap.append(table);
+    view.replaceChildren(rows.length ? wrap : el('p', 'empty', 'No pull requests match these filters'));
+  }
+
+  function nextStep(pr) {
+    if (pr.stage === 'review') return pr.sub === 'changes' ? ['Address review comments', 'red'] : pr.draft ? ['Mark ready for review', 'blue'] : ['Waiting on reviewers', 'blue'];
+    if (pr.stage === 'ci') return pr.sub === 'failing' ? ['Fix the failing check', 'red'] : ['Checks running', 'amber'];
+    if (pr.stage === 'ready') return ['Add to the merge queue', 'green'];
+    if (pr.stage === 'queue') return [`In queue, ${ordinal(pr.position)}`, 'indigo'];
+    return [pr.blocker, 'red'];
+  }
+  function workRow(pr, next) {
+    const b = el('button', 'work');
+    b.type = 'button';
+    const t = el('span', 'ttl', pr.title);
+    t.append(el('span', 'sub', `${REPOS[pr.repo]} · ${pr.author === ME ? 'you' : pr.author} · open ${ageText(pr.age)}`));
+    b.append(el('span', 'num', `#${pr.num}`), t, el('span', `next tone-${next[1]}`, next[0]));
+    b.addEventListener('click', () => openDrawer(pr, b));
+    return b;
+  }
+  function renderMine() {
+    const view = $('view');
+    view.className = 'mine';
+    const mine = OPEN.filter((pr) => pr.author === ME && matches(pr));
+    const asks = OPEN.filter((pr) => pr.author !== ME && pr.reviewers.some((r) => r.name === ME && r.state === 'pending') && matches(pr));
+    const own = el('section', 'panel');
+    const needs = mine.filter((pr) => ['red', 'green'].includes(nextStep(pr)[1])).length;
+    own.append(el('h2', '', 'Your pull requests'), el('p', '', `${mine.length} open, ${needs} need something from you`), ...mine.map((pr) => workRow(pr, nextStep(pr))));
+    const rev = el('section', 'panel');
+    rev.append(el('h2', '', 'Waiting for your review'), el('p', '', asks.length ? 'Oldest first' : 'Nothing waiting for you'), ...asks.sort((a, b) => b.age - a.age).map((pr) => workRow(pr, [`Asked ${hoursText(pr.updated)} ago`, 'blue'])));
+    view.replaceChildren(own, rev);
+  }
+
+  function renderHistory() {
+    const view = $('view');
+    view.className = 'history';
+    const list = MERGED.filter((m) => matches(m));
+    const chart = el('section', 'panel');
+    const byDay = Array.from({ length: 14 }, (_, i) => list.filter((m) => m.daysAgo === 13 - i).length);
+    const max = Math.max(1, ...byDay);
+    const bars = el('div', 'bars');
+    bars.setAttribute('role', 'img');
+    bars.setAttribute('aria-label', `Merged per day over the last 14 days: ${byDay.join(', ')}`);
+    byDay.forEach((n, i) => {
+      const bar = el('div', `bar${i === 13 ? ' today' : ''}`);
+      bar.style.height = `${Math.max(3, (n / max) * 100)}%`;
+      bar.append(el('span', '', n ? String(n) : ''));
+      bars.append(bar);
+    });
+    const axis = el('div', 'axis');
+    axis.append(el('span', '', '14 days ago'), el('span', '', 'Today'));
+    chart.append(el('h2', '', 'Merged in the last 14 days'), el('p', '', `${list.length} pull requests`), bars, axis);
+
+    const recent = el('section', 'panel');
+    recent.append(el('h2', '', 'Recently merged'));
+    let lastDay = null;
+    list.slice().sort((a, b) => a.daysAgo - b.daysAgo || b.num - a.num).slice(0, 24).forEach((m) => {
+      if (m.daysAgo !== lastDay) {
+        lastDay = m.daysAgo;
+        recent.append(el('p', 'day-head', m.daysAgo === 0 ? 'Today' : m.daysAgo === 1 ? 'Yesterday' : `${m.daysAgo} days ago`));
+      }
+      const row = el('div', 'work');
+      row.style.cursor = 'default';
+      const t = el('span', 'ttl', m.title);
+      t.append(el('span', 'sub', `${REPOS[m.repo]} · ${m.author === ME ? 'you' : m.author} · ${m.labels[0]}`));
+      row.append(el('span', 'num', `#${m.num}`), t, el('span', 'next tone-green', `Merged after ${hoursText(m.openFor)}`));
+      recent.append(row);
+    });
+    if (!list.length) recent.append(el('p', 'empty', 'Nothing merged matches these filters'));
+    view.replaceChildren(chart, recent);
+  }
+
+  // Details drawer
+  let opener = null;
+  function openDrawer(pr, from) {
+    opener = from;
+    const d = $('drawer');
+    const head = el('div', 'drawer-head');
+    const left = el('div');
+    left.append(el('p', '', `#${pr.num} · ${REPOS[pr.repo]}`));
+    const h = el('h2', '', pr.title);
+    h.id = 'drawerTitle';
+    left.append(h);
+    const close = el('button', 'close', '×');
+    close.type = 'button';
+    close.setAttribute('aria-label', 'Close details');
+    close.addEventListener('click', closeDrawer);
+    head.append(left, close);
+
+    const facts = el('div', 'facts');
+    facts.append(stageChip(pr), ...pr.labels.map((l) => el('span', 'tag', l)), el('span', 'tag', `Open ${ageText(pr.age)}`), el('span', 'tag', `Updated ${hoursText(pr.updated)} ago`));
+
+    const checks = el('ul', 'lines');
+    pr.checks.forEach((c) => {
+      const li = el('li');
+      li.append(el('span', '', c.name), el('span', `chip tone-${c.state === 'pass' ? 'green' : c.state === 'fail' ? 'red' : 'amber'}`, c.state === 'pass' ? 'Passed' : c.state === 'fail' ? 'Failed' : 'Running'));
+      checks.append(li);
+    });
+
+    const revs = el('ul', 'lines');
+    if (!pr.reviewers.length) revs.append(el('li', '', 'No reviewers yet: still a draft'));
+    pr.reviewers.forEach((r) => {
+      const li = el('li');
+      const who = el('span', 'who');
+      who.append(avatar(r.name), r.name === ME ? 'You' : r.name);
+      li.append(who, el('span', `chip tone-${r.state === 'approved' ? 'green' : r.state === 'changes' ? 'red' : 'blue'}`, r.state === 'approved' ? 'Approved' : r.state === 'changes' ? 'Changes requested' : 'Review requested'));
+      revs.append(li);
+    });
+
+    const timeline = el('ol', 'timeline');
+    const step = (text, when) => { const li = el('li', '', text); li.append(el('small', '', when)); timeline.append(li); };
+    step(`Opened by ${pr.author === ME ? 'you' : pr.author}${pr.draft ? ' as a draft' : ''}`, pr.age ? `${pr.age} days ago` : 'today');
+    if (pr.reviewers.length) step('Review requested', pr.age > 1 ? `${pr.age - 1} days ago` : 'today');
+    if (pr.sub === 'changes') step('Changes requested', `${hoursText(pr.updated)} ago`);
+    if (pr.stage === 'ci') step(pr.sub === 'failing' ? 'A check failed after the latest push' : 'New push, checks started', `${hoursText(pr.updated)} ago`);
+    if (['ready', 'queue', 'blocked'].includes(pr.stage) && pr.reviewers.some((r) => r.state === 'approved')) step('Approved', `${hoursText(pr.updated)} ago`);
+    if (pr.stage === 'queue') step(`Added to the merge queue, ${ordinal(pr.position)} in line`, 'within the hour');
+    if (pr.blocker) step(`Blocked: ${pr.blocker}`, `${hoursText(pr.updated)} ago`);
+
+    const parts = [head, facts];
+    if (pr.blocker) parts.push(el('p', 'blocker', pr.blocker));
+    parts.push(el('h3', '', 'Checks'), checks, el('h3', '', 'Reviews'), revs, el('h3', '', 'Timeline'), timeline);
+    const link = el('button', 'btn open-link', 'Open on GitHub (not linked in this concept)');
+    link.type = 'button';
+    link.disabled = true;
+    parts.push(link);
+    d.replaceChildren(...parts);
+    d.hidden = false;
+    $('scrim').hidden = false;
+    close.focus();
+  }
+  function closeDrawer() {
+    $('drawer').hidden = true;
+    $('scrim').hidden = true;
+    if (opener && opener.isConnected) opener.focus();
+  }
+  $('scrim').addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('drawer').hidden) closeDrawer(); });
+
+  // Tabs
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function selectTab(tab, focus) {
+    state.view = tab.dataset.view;
+    tabs.forEach((t) => { t.setAttribute('aria-selected', String(t === tab)); t.tabIndex = t === tab ? 0 : -1; });
+    $('view').setAttribute('aria-labelledby', tab.id);
+    if (focus) tab.focus();
+    render();
+  }
+  tabs.forEach((tab, i) => {
+    tab.addEventListener('click', () => selectTab(tab));
+    tab.addEventListener('keydown', (e) => {
+      const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (step) selectTab(tabs[(i + step + tabs.length) % tabs.length], true);
+    });
+  });
+
+  $('refresh').addEventListener('click', () => {
+    const b = $('refresh');
+    b.classList.remove('spin');
+    void b.offsetWidth;
+    b.classList.add('spin');
+    state.updated = 'just now';
+    render();
+  });
+
+  function render() {
+    const repoCount = new Set(OPEN.map((pr) => pr.repo)).size;
+    $('meta').textContent = `${OPEN.length} open pull requests across ${repoCount} repositories · Updated ${state.updated}`;
+    const mineCount = OPEN.filter((pr) => pr.author === ME).length + OPEN.filter((pr) => pr.reviewers.some((r) => r.name === ME && r.state === 'pending')).length;
+    $('mineCount').textContent = String(mineCount);
+    [...$('labels').children].forEach((b) => b.setAttribute('aria-pressed', String(state.labels.has(b.textContent))));
+    $('clear').disabled = !filtersOn();
+    renderStages();
+    if (state.view === 'history') {
+      const n = MERGED.filter((m) => matches(m)).length;
+      $('showing').textContent = `Showing ${n} of ${MERGED.length} merged in the last 14 days`;
+      renderHistory();
+      return;
+    }
+    const list = OPEN.filter((pr) => matches(pr));
+    $('showing').textContent = state.view === 'mine' ? 'Your pull requests and the reviews waiting for you' : `Showing ${list.length} of ${OPEN.length} open pull requests`;
+    if (state.view === 'board') renderBoard(list);
+    else if (state.view === 'list') renderList(list);
+    else renderMine();
+  }
+
+  setupFilters();
+  render();
+</script>
+</body>
+</html>
